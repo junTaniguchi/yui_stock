@@ -27,7 +27,15 @@ st.markdown(
         z-index: 0;
     }
     /* Streamlitの各種テキスト要素も黒系に強制 */
-    .stMarkdown, .stText, .stTitle, .stHeader, .stSubheader, .stCaption, .stRadio label, .stButton, .stMetric, .stAlert, .stDataFrame, .stNumberInput, .stSelectbox, .stInfo, .stSuccess, .stError, .stWarning {
+    .stMarkdown, .stText, .stTitle, .stHeader, .stSubheader, .stCaption, .stMetric, .stAlert, .stDataFrame, .stNumberInput, .stSelectbox, .stInfo, .stSuccess, .stError, .stWarning {
+        color: #222 !important;
+    }
+    /* ボタンの文字色は白 */
+    .stButton>button, .stDownloadButton>button {
+        color: #fff !important;
+    }
+    /* ラジオボタンのラベルは黒 */
+    .stRadio label {
         color: #222 !important;
     }
     </style>
