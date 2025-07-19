@@ -1,4 +1,16 @@
 import streamlit as st
+from firebase_client import db
+
+# Firestoreから在庫データを取得して初期値に反映
+def load_stock_from_firestore():
+    doc = db.collection("stocks").document("nursery").get()
+    if doc.exists:
+        st.session_state.checked = doc.to_dict()
+        st.session_state.stock = doc.to_dict()
+
+if "_stock_loaded" not in st.session_state:
+    load_stock_from_firestore()
+    st.session_state._stock_loaded = True
 from constants import CLOTHING_ITEMS
 
 def page_register_stock():
@@ -17,4 +29,6 @@ def page_register_stock():
     if st.button("在庫を登録・更新", use_container_width=True):
         st.session_state.checked = new_checked.copy()
         st.session_state.stock = new_checked.copy()
-        st.success("在庫を更新しました")
+        # Firestoreに保存
+        db.collection("stocks").document("nursery").set(new_checked)
+        st.success("在庫を更新しました（Firestoreにも保存）")

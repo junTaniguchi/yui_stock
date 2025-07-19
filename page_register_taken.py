@@ -1,4 +1,5 @@
 import streamlit as st
+from firebase_client import db
 from constants import CLOTHING_ITEMS
 
 def page_register_taken():

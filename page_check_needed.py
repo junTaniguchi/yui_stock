@@ -1,4 +1,5 @@
 import streamlit as st
+from firebase_client import db
 from utils import calc_needed, reset_all
 from constants import CLOTHING_ITEMS
 
