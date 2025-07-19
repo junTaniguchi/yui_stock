@@ -15,6 +15,7 @@ st.markdown(
     body, .stApp {
         background: linear-gradient(135deg, #f9e7fe 0%, #e0f7fa 100%) !important;
         min-height: 100vh;
+        color: #222 !important;
     }
     .stApp {
         position: relative;
@@ -24,6 +25,10 @@ st.markdown(
         left: 0; right: 0; top: 0; bottom: 0;
         pointer-events: none;
         z-index: 0;
+    }
+    /* Streamlitの各種テキスト要素も黒系に強制 */
+    .stMarkdown, .stText, .stTitle, .stHeader, .stSubheader, .stCaption, .stRadio label, .stButton, .stMetric, .stAlert, .stDataFrame, .stNumberInput, .stSelectbox, .stInfo, .stSuccess, .stError, .stWarning {
+        color: #222 !important;
     }
     </style>
     <div class="bg-illust">
