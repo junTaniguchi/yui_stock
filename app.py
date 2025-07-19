@@ -34,8 +34,8 @@ st.markdown(
     .stButton>button, .stDownloadButton>button {
         color: #fff !important;
     }
-    /* ラジオボタンのラベルは黒 */
-    .stRadio label {
+    /* ラジオボタンのラベル・選択肢も黒 */
+    .stRadio label, .stRadio div[role="radiogroup"] label span, .stRadio div[role="radiogroup"] label {
         color: #222 !important;
     }
     </style>
