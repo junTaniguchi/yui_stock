@@ -34,9 +34,18 @@ st.markdown(
     .stButton>button, .stDownloadButton>button {
         color: #fff !important;
     }
-    /* ラジオボタンのラベル・選択肢も黒 */
-    .stRadio label, .stRadio div[role="radiogroup"] label span, .stRadio div[role="radiogroup"] label {
+    /* ラジオボタンのラベル・選択肢（数字）も黒 */
+    .stRadio label,
+    .stRadio div[role="radiogroup"] label span,
+    .stRadio div[role="radiogroup"] label,
+    .stRadio div[role="radiogroup"] label span,
+    .stRadio div[role="radiogroup"] label > div,
+    .stRadio div[role="radiogroup"] label > span,
+    .stRadio div[role="radiogroup"] label > svg,
+    .stRadio div[role="radiogroup"] input[type="radio"] + div,
+    .stRadio div[role="radiogroup"] input[type="radio"] + span {
         color: #222 !important;
+        fill: #222 !important;
     }
     </style>
     <div class="bg-illust">
