@@ -74,3 +74,30 @@ with st.sidebar:
 
 pages[st.session_state.page]()
 
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
+# Firebase Admin SDKの初期化
+cred = credentials.Certificate("path/to/your/serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+
+# Firestoreのインスタンスを取得
+db = firestore.client()
+
+# コレクションへのデータの追加
+def add_data_to_firestore(collection, data):
+    db.collection(collection).add(data)
+
+# コレクションからのデータの取得
+def get_data_from_firestore(collection):
+    docs = db.collection(collection).stream()
+    return [{**doc.to_dict(), "id": doc.id} for doc in docs]
+
+# 例: データの追加
+add_data_to_firestore("test_collection", {"field1": "value1", "field2": "value2"})
+
+# 例: データの取得
+data = get_data_from_firestore("test_collection")
+print(data)
+

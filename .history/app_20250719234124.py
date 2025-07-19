@@ -5,40 +5,7 @@ from page_register_taken import page_register_taken
 from page_top import page_top
 from constants import CLOTHING_ITEMS
 
-
 st.set_page_config(layout="centered", page_title="保育園 着替え管理")
-
-# --- 楽しい雰囲気の背景CSS ---
-st.markdown(
-    """
-    <style>
-    body, .stApp {
-        background: linear-gradient(135deg, #f9e7fe 0%, #e0f7fa 100%) !important;
-        min-height: 100vh;
-    }
-    .stApp {
-        position: relative;
-    }
-    .bg-illust {
-        position: fixed;
-        left: 0; right: 0; top: 0; bottom: 0;
-        pointer-events: none;
-        z-index: 0;
-    }
-    </style>
-    <div class="bg-illust">
-      <svg width="100%" height="100%" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;opacity:0.13;">
-        <ellipse cx="60" cy="60" rx="50" ry="20" fill="#ffd1dc"/>
-        <ellipse cx="350" cy="120" rx="60" ry="25" fill="#b2ebf2"/>
-        <ellipse cx="200" cy="180" rx="90" ry="18" fill="#ffe082"/>
-        <ellipse cx="320" cy="40" rx="30" ry="12" fill="#b2dfdb"/>
-        <ellipse cx="100" cy="160" rx="40" ry="14" fill="#f8bbd0"/>
-        <ellipse cx="250" cy="60" rx="25" ry="10" fill="#c5e1a5"/>
-      </svg>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 # --- セッションステート初期化 ---
 def init_state():
