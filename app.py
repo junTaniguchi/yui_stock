@@ -84,26 +84,6 @@ def init_state():
 
 init_state()
 
-
-# --- ログイン画面（独立） ---
-def login_page():
-    st.title("ログイン")
-    email = st.text_input("メールアドレス")
-    password = st.text_input("パスワード", type="password")
-    if st.button("ログイン"):
-        user = login(email, password)
-        if user:
-            st.session_state.user = user
-            st.session_state.page = "top"  # ログイン後TOPへ
-            st.experimental_rerun()
-            return  # rerun後の無限ループ防止
-        else:
-            st.error("ログインに失敗しました")
-
-if "user" not in st.session_state or not st.session_state.user:
-    login_page()
-    st.stop()
-
 pages = {
     "top": page_top,
     "check_needed": page_check_needed,
