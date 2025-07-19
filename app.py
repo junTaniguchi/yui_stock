@@ -96,6 +96,7 @@ def login_page():
             st.session_state.user = user
             st.session_state.page = "top"  # ログイン後TOPへ
             st.experimental_rerun()
+            return  # rerun後の無限ループ防止
         else:
             st.error("ログインに失敗しました")
 
