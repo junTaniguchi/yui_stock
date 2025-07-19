@@ -5,3 +5,6 @@ __pycache__/
 # Streamlit
 .streamlit/
 *.streamlit/
+
+# macOS
+.DS_Store
