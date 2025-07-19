@@ -4,6 +4,7 @@ import streamlit as st
 firebase_config = {
     "apiKey": "AIzaSyAUHszKFF-jN6l1r_HZp_XjgHlRgJo4X-o",
     "authDomain": "yui-stock.firebaseapp.com",
+    "databaseURL": "",
     "projectId": "yui-stock",
     "storageBucket": "yui-stock.firebasestorage.app",
     "messagingSenderId": "704142178477",
