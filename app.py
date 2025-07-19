@@ -84,11 +84,9 @@ def init_state():
 
 init_state()
 
-# --- Firebase Authentication ---
-if "user" not in st.session_state:
-    st.session_state.user = None
 
-if not st.session_state.user:
+# --- ログイン画面（独立） ---
+def login_page():
     st.title("ログイン")
     email = st.text_input("メールアドレス")
     password = st.text_input("パスワード", type="password")
@@ -96,8 +94,14 @@ if not st.session_state.user:
         user = login(email, password)
         if user:
             st.session_state.user = user
+            st.session_state.page = "top"  # ログイン後TOPへ
             st.experimental_rerun()
-            st.stop()  # ← 追加
+        else:
+            st.error("ログインに失敗しました")
+
+if "user" not in st.session_state or not st.session_state.user:
+    login_page()
+    st.stop()
 
 pages = {
     "top": page_top,
