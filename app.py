@@ -4,6 +4,7 @@ from page_register_stock import page_register_stock
 from page_register_taken import page_register_taken
 from page_top import page_top
 from constants import CLOTHING_ITEMS
+from firebase_auth import login
 
 
 st.set_page_config(layout="centered", page_title="保育園 着替え管理")
@@ -82,6 +83,21 @@ def init_state():
         st.session_state.page = "top"
 
 init_state()
+
+# --- Firebase Authentication ---
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+if not st.session_state.user:
+    st.title("ログイン")
+    email = st.text_input("メールアドレス")
+    password = st.text_input("パスワード", type="password")
+    if st.button("ログイン"):
+        user = login(email, password)
+        if user:
+            st.session_state.user = user
+            st.experimental_rerun()
+    st.stop()
 
 pages = {
     "top": page_top,
