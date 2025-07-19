@@ -4,7 +4,8 @@ from page_register_stock import page_register_stock
 from page_register_taken import page_register_taken
 from page_top import page_top
 from constants import CLOTHING_ITEMS
-from firebase_auth import login
+
+from firebase_client import save_app_data, load_app_data
 
 
 st.set_page_config(layout="centered", page_title="保育園 着替え管理")
@@ -72,17 +73,33 @@ st.markdown(
 )
 
 # --- セッションステート初期化 ---
+
 def init_state():
-    if "stock" not in st.session_state:
+    stock, taken, checked = load_app_data()
+    if stock is not None:
+        st.session_state.stock = stock
+    else:
         st.session_state.stock = {item["key"]: 3 for item in CLOTHING_ITEMS}
-    if "taken" not in st.session_state:
+    if taken is not None:
+        st.session_state.taken = taken
+    else:
         st.session_state.taken = {item["key"]: 0 for item in CLOTHING_ITEMS}
-    if "checked" not in st.session_state:
+    if checked is not None:
+        st.session_state.checked = checked
+    else:
         st.session_state.checked = {item["key"]: 3 for item in CLOTHING_ITEMS}
     if "page" not in st.session_state:
         st.session_state.page = "top"
 
 init_state()
+
+# --- データ変更時にFirestoreへ保存 ---
+def sync_to_firestore():
+    save_app_data(st.session_state.stock, st.session_state.taken, st.session_state.checked)
+
+def update_and_sync(key, value, target):
+    st.session_state[target][key] = value
+    sync_to_firestore()
 
 pages = {
     "top": page_top,

@@ -12,3 +12,22 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
+
+# --- 共通データの保存・取得 ---
+COLLECTION = "app_data"
+DOC_ID = "global"  # 全体共通データ
+
+def save_app_data(stock, taken, checked):
+    db.collection(COLLECTION).document(DOC_ID).set({
+        "stock": stock,
+        "taken": taken,
+        "checked": checked
+    })
+
+def load_app_data():
+    doc = db.collection(COLLECTION).document(DOC_ID).get()
+    if doc.exists:
+        data = doc.to_dict()
+        return data.get("stock"), data.get("taken"), data.get("checked")
+    else:
+        return None, None, None
