@@ -97,7 +97,7 @@ if not st.session_state.user:
         if user:
             st.session_state.user = user
             st.experimental_rerun()
-    st.stop()
+            st.stop()  # ← 追加
 
 pages = {
     "top": page_top,
