@@ -2,10 +2,13 @@ import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import InstallPrompt from './components/InstallPrompt';
+import { usePWAStyles } from './hooks/usePWA';
 import './App.css';
 
 function AppContent() {
   const { currentUser, loading } = useAuth();
+  const pwaStatus = usePWAStyles(); // PWAスタイルを適用
 
   if (loading) {
     return (
@@ -18,7 +21,13 @@ function AppContent() {
     );
   }
 
-  return currentUser ? <Dashboard /> : <Login />;
+  return (
+    <>
+      {currentUser ? <Dashboard /> : <Login />}
+      {/* PWAインストールプロンプトを表示（インストール済みの場合は表示されない） */}
+      <InstallPrompt />
+    </>
+  );
 }
 
 function App() {

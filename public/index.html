@@ -1,30 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    
+    <!-- PWA対応ビューポート設定 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- PWA テーマカラー設定 -->
+    <meta name="theme-color" content="#fd79a8" />
+    <meta name="msapplication-TileColor" content="#fd79a8">
+    <meta name="msapplication-navbutton-color" content="#fd79a8">
+    
+    <!-- iOS PWA対応 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ゆいちゃんの保育園準備" />
+    
+    <!-- Android PWA対応 -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- アプリ説明 -->
+    <meta name="description" content="保育園の持ち物管理を効率化するPWAアプリ。週単位アイテムの状態管理とチェック機能で準備をサポート" />
+    <meta name="keywords" content="保育園,持ち物,管理,PWA,アプリ,準備,チェック,週単位" />
+    <meta name="author" content="ゆいちゃんの保育園準備アプリ" />
+    
+    <!-- アイコン設定 -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
+    <link rel="apple-touch-icon" sizes="152x152" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="%PUBLIC_URL%/logo192.png" />
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    
+    <!-- スプラッシュスクリーン用の背景色 -->
+    <style>
+      html { background-color: #ffeaa7; }
+      body { 
+        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #fd79a8 100%);
+        margin: 0;
+      }
+    </style>
+    
+    <title>🌸 ゆいちゃんの保育園準備</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

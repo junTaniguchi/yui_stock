@@ -50,3 +50,71 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* PWA専用スタイル */
+.pwa-standalone .App {
+  /* スタンドアロンモード時はブラウザUIを考慮しない */
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pwa-browser .App {
+  /* ブラウザモード時は通常通り */
+  min-height: 100vh;
+}
+
+/* iOS PWA専用スタイル */
+.pwa-ios.pwa-standalone {
+  /* iOSのセーフエリアに対応 */
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+}
+
+.pwa-ios.pwa-standalone .App {
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* ステータスバー色の設定（iOS） */
+.pwa-ios.pwa-standalone {
+  background: #fd79a8; /* テーマカラーと同じ */
+}
+
+/* Android PWA専用スタイル */
+.pwa-android.pwa-standalone .App {
+  /* Androidのナビゲーションバー対応 */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* PWAモード時のスクロール改善 */
+.pwa-standalone {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* PWAモード時のタッチアクション最適化 */
+.pwa-standalone * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* テキスト選択が必要な要素は個別に有効化 */
+.pwa-standalone input,
+.pwa-standalone textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* PWAスプラッシュスクリーン対応 */
+@media (display-mode: standalone) {
+  html {
+    background: #ffeaa7; /* manifest.jsonのbackground_colorと同じ */
+  }
+  
+  body {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #fd79a8 100%);
+  }
+}
