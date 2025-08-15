@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "ゆいちゃんの保育園準備",
+  "name": "ゆいちゃんの保育園準備アプリ",
+  "description": "保育園の持ち物管理を効率化するPWAアプリ",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,8 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "theme_color": "#fd79a8",
+  "background_color": "#ffeaa7",
+  "categories": ["lifestyle", "productivity"]
 }
