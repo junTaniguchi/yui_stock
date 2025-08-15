@@ -12,12 +12,13 @@ const InstallPrompt: React.FC = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
-  const [canInstall, setCanInstall] = useState(false);
+  const [, setCanInstall] = useState(false);
 
   useEffect(() => {
-    // iOS判定
+    // iOS/Safari判定
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    setIsIOS(ios);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    setIsIOS(ios || isSafari);
 
     // PWAとしてインストール済みか判定
     const standalone = window.matchMedia('(display-mode: standalone)').matches 
@@ -159,12 +160,17 @@ const InstallPrompt: React.FC = () => {
             <div className="ios-instructions">
               <p className="instruction-title">📲 ホーム画面に追加する手順:</p>
               <ol>
-                <li>画面下部の<strong>共有ボタン</strong> <span className="share-icon">⎋</span> をタップ</li>
+                <li>
+                  <strong>共有ボタン</strong> <span className="share-icon">⎋</span> をタップ<br/>
+                  <small style={{color: '#666'}}>
+                    {/iPad/.test(navigator.userAgent) ? 'アドレスバー右側' : 'ブラウザ下部ツールバー'}にあります
+                  </small>
+                </li>
                 <li>下にスクロールして<strong>「ホーム画面に追加」</strong>を見つけてタップ</li>
                 <li>右上の<strong>「追加」</strong>をタップして完了!</li>
               </ol>
               <p style={{fontSize: '0.8rem', color: '#1565c0', marginTop: '0.5rem', textAlign: 'center'}}>
-                ✨ アプリのようにサクサク使えるようになります
+                ✨ ブラウザなしで直接開けるようになります
               </p>
             </div>
           ) : (

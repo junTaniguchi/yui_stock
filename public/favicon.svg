@@ -1,0 +1,129 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffeaa7"/>
+      <stop offset="70%" style="stop-color:#fab1a0"/>
+      <stop offset="100%" style="stop-color:#fd79a8"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="32" height="32" fill="url(#bg)" rx="3.2"/>
+  
+  <!-- カバン本体 -->
+  <rect x="9.6" y="14.4" width="12.8" height="11.2" fill="#8B4513" rx="0.64"/>
+  
+  <!-- カバンの蓋 -->
+  <rect x="8.96" y="12.8" width="14.08" height="4.8" fill="#A0522D" rx="0.64"/>
+  
+  <!-- カバンの取っ手 -->
+  <path d="M 13.44 11.2 Q 16 8 18.56 11.2" 
+        stroke="#654321" stroke-width="0.64" fill="none" stroke-linecap="round"/>
+  
+  <!-- カバンの金具 -->
+  <rect x="15.04" y="15.04" width="1.92" height="0.96" fill="#FFD700" rx="0.32"/>
+  
+  <!-- 大きな桜の花（メイン） -->
+  <g transform="translate(16, 4.8)">
+    <g transform="rotate(0)">
+      <ellipse cx="0" cy="-2.4" rx="0.8" ry="1.6" fill="#FF69B4"/>
+    </g>
+    <g transform="rotate(72)">
+      <ellipse cx="0" cy="-2.4" rx="0.8" ry="1.6" fill="#FF69B4"/>
+    </g>
+    <g transform="rotate(144)">
+      <ellipse cx="0" cy="-2.4" rx="0.8" ry="1.6" fill="#FF69B4"/>
+    </g>
+    <g transform="rotate(216)">
+      <ellipse cx="0" cy="-2.4" rx="0.8" ry="1.6" fill="#FF69B4"/>
+    </g>
+    <g transform="rotate(288)">
+      <ellipse cx="0" cy="-2.4" rx="0.8" ry="1.6" fill="#FF69B4"/>
+    </g>
+    <circle cx="0" cy="0" r="0.384" fill="#FFD700"/>
+  </g>
+  
+  <!-- 小さな桜の花1 -->
+  <g transform="translate(6.4, 8)">
+    <g transform="rotate(0)">
+      <ellipse cx="0" cy="-0.96" rx="0.48" ry="0.96" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(72)">
+      <ellipse cx="0" cy="-0.96" rx="0.48" ry="0.96" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(144)">
+      <ellipse cx="0" cy="-0.96" rx="0.48" ry="0.96" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(216)">
+      <ellipse cx="0" cy="-0.96" rx="0.48" ry="0.96" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(288)">
+      <ellipse cx="0" cy="-0.96" rx="0.48" ry="0.96" fill="#FFB6C1"/>
+    </g>
+    <circle cx="0" cy="0" r="0.256" fill="#FFD700"/>
+  </g>
+  
+  <!-- 小さな桜の花2 -->
+  <g transform="translate(25.6, 6.4)">
+    <g transform="rotate(36)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFC0CB"/>
+    </g>
+    <g transform="rotate(108)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFC0CB"/>
+    </g>
+    <g transform="rotate(180)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFC0CB"/>
+    </g>
+    <g transform="rotate(252)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFC0CB"/>
+    </g>
+    <g transform="rotate(324)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFC0CB"/>
+    </g>
+    <circle cx="0" cy="0" r="0.192" fill="#FFD700"/>
+  </g>
+  
+  <!-- 小さな桜の花3 -->
+  <g transform="translate(4.8, 24)">
+    <g transform="rotate(0)">
+      <ellipse cx="0" cy="-0.64" rx="0.32" ry="0.64" fill="#FFCCCB"/>
+    </g>
+    <g transform="rotate(72)">
+      <ellipse cx="0" cy="-0.64" rx="0.32" ry="0.64" fill="#FFCCCB"/>
+    </g>
+    <g transform="rotate(144)">
+      <ellipse cx="0" cy="-0.64" rx="0.32" ry="0.64" fill="#FFCCCB"/>
+    </g>
+    <g transform="rotate(216)">
+      <ellipse cx="0" cy="-0.64" rx="0.32" ry="0.64" fill="#FFCCCB"/>
+    </g>
+    <g transform="rotate(288)">
+      <ellipse cx="0" cy="-0.64" rx="0.32" ry="0.64" fill="#FFCCCB"/>
+    </g>
+    <circle cx="0" cy="0" r="0.16" fill="#FFD700"/>
+  </g>
+  
+  <!-- 小さな桜の花4 -->
+  <g transform="translate(27.2, 24)">
+    <g transform="rotate(18)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(90)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(162)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(234)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFB6C1"/>
+    </g>
+    <g transform="rotate(306)">
+      <ellipse cx="0" cy="-0.8" rx="0.384" ry="0.8" fill="#FFB6C1"/>
+    </g>
+    <circle cx="0" cy="0" r="0.192" fill="#FFD700"/>
+  </g>
+  
+  <!-- 葉っぱ -->
+  <ellipse cx="8" cy="11.2" rx="0.48" ry="0.32" fill="#90EE90" transform="rotate(45 8 11.2)"/>
+  <ellipse cx="24" cy="9.6" rx="0.384" ry="0.256" fill="#90EE90" transform="rotate(-45 24 9.6)"/>
+</svg>
