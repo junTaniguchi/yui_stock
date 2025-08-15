@@ -8,7 +8,7 @@ import './App.css';
 
 function AppContent() {
   const { currentUser, loading } = useAuth();
-  const pwaStatus = usePWAStyles(); // PWAスタイルを適用
+  usePWAStyles(); // PWAスタイルを適用
 
   if (loading) {
     return (

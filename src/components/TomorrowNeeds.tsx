@@ -24,10 +24,24 @@ const TomorrowNeeds: React.FC<TomorrowNeedsProps> = ({ needs }) => {
   }, [checkedItems, today]);
 
   const handleCheck = (itemId: string) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
+    console.log('handleCheck called with itemId:', itemId);
+    console.log('Current checkedItems:', checkedItems);
+    
+    setCheckedItems(prev => {
+      const newState = {
+        ...prev,
+        [itemId]: !prev[itemId]
+      };
+      console.log('New checkedItems state:', newState);
+      return newState;
+    });
+  };
+
+  const handleInteraction = (e: React.MouseEvent | React.TouchEvent, itemId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Interaction event fired for:', itemId, 'Event type:', e.type);
+    handleCheck(itemId);
   };
 
   if (needs.length === 0) {
@@ -62,7 +76,14 @@ const TomorrowNeeds: React.FC<TomorrowNeedsProps> = ({ needs }) => {
           <div 
             key={need.itemId} 
             className={`need-item ${checkedItems[need.itemId] ? 'checked' : ''}`}
-            onClick={() => handleCheck(need.itemId)}
+            onClick={(e) => handleInteraction(e, need.itemId)}
+            onTouchEnd={(e) => handleInteraction(e, need.itemId)}
+            style={{ 
+              cursor: 'pointer',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              WebkitTapHighlightColor: 'transparent'
+            }}
           >
             <div className="need-checkbox">
               {checkedItems[need.itemId] ? '✅' : '⭕'}

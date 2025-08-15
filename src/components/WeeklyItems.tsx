@@ -23,10 +23,18 @@ const WeeklyItems: React.FC<WeeklyItemsProps> = ({ needs }) => {
   }, [checkedItems, today]);
 
   const handleCheck = (itemId: string) => {
+    console.log('WeeklyItems handleCheck called with itemId:', itemId);
     setCheckedItems(prev => ({
       ...prev,
       [itemId]: !prev[itemId]
     }));
+  };
+
+  const handleInteraction = (e: React.MouseEvent | React.TouchEvent, itemId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('WeeklyItems interaction event fired for:', itemId, 'Event type:', e.type);
+    handleCheck(itemId);
   };
 
   if (needs.length === 0) {
@@ -49,7 +57,8 @@ const WeeklyItems: React.FC<WeeklyItemsProps> = ({ needs }) => {
           <div 
             key={need.itemId} 
             className={`weekly-item ${checkedItems[need.itemId] ? 'checked' : ''}`}
-            onClick={() => handleCheck(need.itemId)}
+            onClick={(e) => handleInteraction(e, need.itemId)}
+            onTouchEnd={(e) => handleInteraction(e, need.itemId)}
           >
             <div className="weekly-checkbox">
               {checkedItems[need.itemId] ? '✅' : '⭕'}

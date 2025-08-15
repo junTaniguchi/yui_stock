@@ -94,11 +94,21 @@ body {
 }
 
 /* PWAモード時のタッチアクション最適化 */
-.pwa-standalone * {
-  -webkit-tap-highlight-color: transparent;
+.pwa-standalone {
   -webkit-touch-callout: none;
+}
+
+/* インタラクティブな要素はタッチ可能に */
+.pwa-standalone .need-item,
+.pwa-standalone .weekly-item,
+.pwa-standalone button,
+.pwa-standalone [role="button"],
+.pwa-standalone .counter-btn,
+.pwa-standalone .action-btn {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
   -webkit-user-select: none;
   user-select: none;
+  pointer-events: auto;
 }
 
 /* テキスト選択が必要な要素は個別に有効化 */
@@ -106,6 +116,7 @@ body {
 .pwa-standalone textarea {
   -webkit-user-select: auto;
   user-select: auto;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
 /* PWAスプラッシュスクリーン対応 */
