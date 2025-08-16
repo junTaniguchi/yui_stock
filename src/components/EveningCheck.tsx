@@ -31,9 +31,17 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
   }, [existingData]);
 
   const handleCountChange = (itemId: string, count: number) => {
+    // 上着、肌着、ズボン以外は0か1のみ
+    const restrictedItems = ['towel', 'contact_book', 'straw_mug', 'plastic_bag'];
+    let newCount = Math.max(0, count);
+    
+    if (restrictedItems.includes(itemId)) {
+      newCount = Math.min(1, newCount);
+    }
+    
     setUsedCounts(prev => ({
       ...prev,
-      [itemId]: Math.max(0, count),
+      [itemId]: newCount,
     }));
   };
 
@@ -116,6 +124,7 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
                 <input
                   type="number"
                   min="0"
+                  max={['towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id) ? 1 : undefined}
                   value={usedCounts[item.id] || 0}
                   onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
                   className="counter-input"
@@ -126,7 +135,7 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
                   type="button"
                   onClick={() => handleCountChange(item.id, (usedCounts[item.id] || 0) + 1)}
                   className="counter-btn plus"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (['towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id) && (usedCounts[item.id] || 0) >= 1)}
                 >
                   +
                 </button>
