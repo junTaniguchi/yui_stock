@@ -50,6 +50,14 @@ export const clothingItems: ClothingItem[] = [
     icon: '📝',
   },
   {
+    id: 'straw_mug',
+    name: 'ストローマグ',
+    type: 'straw_mug',
+    required: 1,
+    schedule: 'daily',
+    icon: '🥤',
+  },
+  {
     id: 'swimsuit',
     name: '水着',
     type: 'swimsuit',
@@ -77,7 +85,7 @@ export const clothingItems: ClothingItem[] = [
 
 // 毎日必要なアイテム
 export const dailyItems = clothingItems.filter(item => 
-  ['underwear', 'short_sleeve', 'long_sleeve', 'pants', 'towel', 'contact_book'].includes(item.id)
+  ['underwear', 'short_sleeve', 'long_sleeve', 'pants', 'towel', 'contact_book', 'straw_mug'].includes(item.id)
 );
 
 // 週次アイテム
