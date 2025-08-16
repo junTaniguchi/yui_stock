@@ -18,6 +18,8 @@ export const clothingItems: ClothingItem[] = [
     schedule: 'daily',
     icon: '👚',
     unit: '枚',
+    group: 'tops',
+    groupRequired: 3,
   },
   {
     id: 'long_sleeve',
@@ -27,6 +29,8 @@ export const clothingItems: ClothingItem[] = [
     schedule: 'daily',
     icon: '👔',
     unit: '枚',
+    group: 'tops',
+    groupRequired: 3,
   },
   {
     id: 'pants',
@@ -45,6 +49,7 @@ export const clothingItems: ClothingItem[] = [
     schedule: 'daily',
     icon: '🛏️',
     unit: '枚',
+    takesHomeDaily: true,
   },
   {
     id: 'contact_book',
@@ -54,6 +59,7 @@ export const clothingItems: ClothingItem[] = [
     schedule: 'daily',
     icon: '📝',
     unit: '個',
+    takesHomeDaily: true,
   },
   {
     id: 'straw_mug',
@@ -63,6 +69,17 @@ export const clothingItems: ClothingItem[] = [
     schedule: 'daily',
     icon: '🥤',
     unit: '個',
+    takesHomeDaily: true,
+  },
+  {
+    id: 'plastic_bag',
+    name: 'ビニール袋',
+    type: 'plastic_bag',
+    required: 1,
+    schedule: 'daily',
+    icon: '🛍️',
+    unit: '枚',
+    takesHomeDaily: true,
   },
   {
     id: 'swimsuit',
@@ -95,7 +112,7 @@ export const clothingItems: ClothingItem[] = [
 
 // 毎日必要なアイテム
 export const dailyItems = clothingItems.filter(item => 
-  ['underwear', 'short_sleeve', 'long_sleeve', 'pants', 'towel', 'contact_book', 'straw_mug'].includes(item.id)
+  ['underwear', 'short_sleeve', 'long_sleeve', 'pants', 'towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id)
 );
 
 // 週次アイテム

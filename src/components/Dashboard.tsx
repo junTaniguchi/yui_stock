@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, limit, getDocs, orderBy } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
-import { StockCheck, DailyNeed, WeeklyNeed, WeeklyItemStatus } from '../types';
+import { StockCheck, DailyNeed, WeeklyNeed, WeeklyItemStatus, NurseryStock } from '../types';
 import { clothingItems, weeklyItems } from '../config/items';
 import Layout from './Layout';
 import MorningCheck from './MorningCheck';
 import EveningCheck from './EveningCheck';
 import TomorrowNeeds from './TomorrowNeeds';
 import WeeklyItems from './WeeklyItems';
+import NurseryStockView from './NurseryStockView';
 import './Dashboard.css';
 
 type ViewType = 'home' | 'morning' | 'evening';
@@ -17,10 +18,12 @@ const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [todayMorningCheck, setTodayMorningCheck] = useState<StockCheck | null>(null);
+  const [todayEveningCheck, setTodayEveningCheck] = useState<StockCheck | null>(null);
   const [yesterdayEveningCheck, setYesterdayEveningCheck] = useState<StockCheck | null>(null);
   const [tomorrowNeeds, setTomorrowNeeds] = useState<DailyNeed[]>([]);
   const [weeklyNeeds, setWeeklyNeeds] = useState<WeeklyNeed[]>([]);
   const [weeklyItemStatuses, setWeeklyItemStatuses] = useState<Record<string, WeeklyItemStatus>>({});
+  const [nurseryStocks, setNurseryStocks] = useState<NurseryStock[]>([]);
 
   const today = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -36,8 +39,9 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     calculateTomorrowNeeds();
     calculateWeeklyNeeds();
+    calculateNurseryStocks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todayMorningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
+  }, [todayMorningCheck, todayEveningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
 
   const loadTodayData = async () => {
     if (!currentUser) return;
@@ -56,6 +60,21 @@ const Dashboard: React.FC = () => {
       if (!morningSnapshot.empty) {
         const doc = morningSnapshot.docs[0];
         setTodayMorningCheck({ id: doc.id, ...doc.data() } as StockCheck);
+      }
+
+      // 今日の夕方のチェックを取得
+      const todayEveningQuery = query(
+        collection(db, 'stockChecks'),
+        where('userId', '==', currentUser.uid),
+        where('date', '==', today),
+        where('type', '==', 'evening'),
+        limit(1)
+      );
+      
+      const todayEveningSnapshot = await getDocs(todayEveningQuery);
+      if (!todayEveningSnapshot.empty) {
+        const doc = todayEveningSnapshot.docs[0];
+        setTodayEveningCheck({ id: doc.id, ...doc.data() } as StockCheck);
       }
 
       // 昨日の夕方のチェックを取得
@@ -133,39 +152,120 @@ const Dashboard: React.FC = () => {
 
   const calculateTomorrowNeeds = () => {
     const needs: DailyNeed[] = [];
+    const processedGroups = new Set<string>();
     
     clothingItems.forEach(item => {
       // 日常アイテムのみ対象
       if (item.schedule === 'daily') {
-        let currentStock = 0;
-        let usedToday = 0;
+        // グループアイテムの場合（上着）
+        if (item.group && item.groupRequired && !processedGroups.has(item.group)) {
+          processedGroups.add(item.group);
+          
+          // グループの全アイテムを取得
+          const groupItems = clothingItems.filter(i => i.group === item.group);
+          let totalMorningStock = 0;
+          let totalTakenHomeToday = 0;
 
-        if (todayMorningCheck) {
-          currentStock = todayMorningCheck.items[item.id] || 0;
-        }
-
-        if (yesterdayEveningCheck) {
-          usedToday = yesterdayEveningCheck.items[item.id] || 0;
-        }
-
-        // 推定在庫数 = 朝の在庫数 - 使用数
-        const expectedStock = currentStock - usedToday;
-        const needToBring = Math.max(0, item.required - expectedStock);
-
-        if (needToBring > 0) {
-          needs.push({
-            itemId: item.id,
-            itemName: item.name,
-            needToBring: Math.ceil(needToBring),
-            icon: item.icon,
-            unit: item.unit,
-            isChecked: false,
+          groupItems.forEach(groupItem => {
+            if (todayMorningCheck) {
+              totalMorningStock += todayMorningCheck.items[groupItem.id] || 0;
+            }
+            if (todayEveningCheck) {
+              totalTakenHomeToday += todayEveningCheck.items[groupItem.id] || 0;
+            }
           });
+
+          // 保育園在庫 = 朝の在庫 - 今日持ち帰った数
+          const nurseryStock = Math.max(0, totalMorningStock - totalTakenHomeToday);
+          // 上着の場合: 翌日持っていく在庫 = 3 - SUM(保育園在庫の半袖、保育園在庫の長袖)
+          const needToBring = Math.max(0, 3 - nurseryStock);
+
+          if (needToBring > 0) {
+            needs.push({
+              itemId: item.group,
+              itemName: `上着（半袖・長袖）`,
+              needToBring: Math.ceil(needToBring),
+              icon: '👔',
+              unit: item.unit,
+              isChecked: false,
+            });
+          }
+        }
+        // 単独アイテムの場合
+        else if (!item.group) {
+          let morningStock = 0;
+          let takenHomeToday = 0;
+
+          if (todayMorningCheck) {
+            morningStock = todayMorningCheck.items[item.id] || 0;
+          }
+
+          if (todayEveningCheck) {
+            takenHomeToday = todayEveningCheck.items[item.id] || 0;
+          }
+
+          // 保育園在庫 = 朝の在庫 - 今日持ち帰った数
+          const nurseryStock = Math.max(0, morningStock - takenHomeToday);
+          
+          let needToBring = 0;
+          
+          // 肌着、ズボンの場合: 翌日持っていく在庫 = 3 - 保育園在庫
+          if (item.type === 'underwear' || item.type === 'pants') {
+            needToBring = Math.max(0, 3 - nurseryStock);
+          }
+          // その他（連絡帳、ストローマグ、タオル、ビニール袋）の場合: 1
+          else if (item.type === 'contact_book' || item.type === 'straw_mug' || item.type === 'towel' || item.type === 'plastic_bag') {
+            needToBring = 1;
+          }
+
+          if (needToBring > 0) {
+            needs.push({
+              itemId: item.id,
+              itemName: item.name,
+              needToBring: Math.ceil(needToBring),
+              icon: item.icon,
+              unit: item.unit,
+              isChecked: false,
+            });
+          }
         }
       }
     });
 
     setTomorrowNeeds(needs);
+  };
+
+  const calculateNurseryStocks = () => {
+    const stocks: NurseryStock[] = [];
+    
+    clothingItems.forEach(item => {
+      if (item.schedule === 'daily') {
+        let morningStock = 0;
+        let takenHomeToday = 0;
+
+        if (todayMorningCheck) {
+          morningStock = todayMorningCheck.items[item.id] || 0;
+        }
+
+        if (todayEveningCheck) {
+          takenHomeToday = todayEveningCheck.items[item.id] || 0;
+        }
+
+        // 保育園在庫 = 朝の在庫 - 今日持ち帰った数
+        const currentStock = Math.max(0, morningStock - takenHomeToday);
+        
+        stocks.push({
+          itemId: item.id,
+          itemName: item.name,
+          currentStock,
+          requiredStock: item.required,
+          icon: item.icon,
+          unit: item.unit
+        });
+      }
+    });
+
+    setNurseryStocks(stocks);
   };
 
   const calculateWeeklyNeeds = () => {
@@ -272,12 +372,11 @@ const Dashboard: React.FC = () => {
         <button
           onClick={() => setCurrentView('morning')}
           className="action-btn morning-btn"
-          disabled={!!todayMorningCheck}
         >
           <span className="btn-icon">🌅</span>
           <div>
             <h3>朝の在庫確認</h3>
-            <p>{todayMorningCheck ? '✅ 完了済み' : '保育園の在庫をチェック'}</p>
+            <p>{todayMorningCheck ? '✅ 完了済み（再編集可能）' : '保育園の在庫をチェック'}</p>
           </div>
         </button>
 
@@ -288,10 +387,14 @@ const Dashboard: React.FC = () => {
           <span className="btn-icon">🌙</span>
           <div>
             <h3>夕方の記録</h3>
-            <p>使った枚数を記録</p>
+            <p>{todayEveningCheck ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
           </div>
         </button>
       </div>
+
+      {nurseryStocks.length > 0 && (
+        <NurseryStockView stocks={nurseryStocks} />
+      )}
 
       {tomorrowNeeds.length > 0 && (
         <div className="tomorrow-preview">
@@ -321,6 +424,11 @@ const Dashboard: React.FC = () => {
           <MorningCheck 
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
+            existingData={todayMorningCheck ? {
+              id: todayMorningCheck.id!,
+              items: todayMorningCheck.items,
+              weeklyItems: todayMorningCheck.weeklyItems
+            } : undefined}
           />
         </Layout>
       );
@@ -331,6 +439,11 @@ const Dashboard: React.FC = () => {
           <EveningCheck 
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
+            existingData={todayEveningCheck ? {
+              id: todayEveningCheck.id!,
+              items: todayEveningCheck.items,
+              weeklyItems: todayEveningCheck.weeklyItems
+            } : undefined}
           />
         </Layout>
       );

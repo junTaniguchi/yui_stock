@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { dailyItems, weeklyItems } from '../config/items';
@@ -8,15 +8,27 @@ import './Forms.css';
 interface EveningCheckProps {
   onComplete: () => void;
   onBack: () => void;
+  existingData?: {
+    id: string;
+    items: Record<string, number>;
+    weeklyItems?: Record<string, boolean>;
+  };
 }
 
-const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack }) => {
+const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existingData }) => {
   const { currentUser } = useAuth();
   const [usedCounts, setUsedCounts] = useState<Record<string, number>>({});
   const [weeklyItemsTaken, setWeeklyItemsTaken] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
+
+  useEffect(() => {
+    if (existingData) {
+      setUsedCounts(existingData.items || {});
+      setWeeklyItemsTaken(existingData.weeklyItems || {});
+    }
+  }, [existingData]);
 
   const handleCountChange = (itemId: string, count: number) => {
     setUsedCounts(prev => ({
@@ -39,16 +51,27 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack }) => {
     setIsSubmitting(true);
 
     try {
-      await addDoc(collection(db, 'stockChecks'), {
-        date: today,
-        type: 'evening',
-        items: usedCounts,
-        weeklyItems: weeklyItemsTaken,
-        userId: currentUser.uid,
-        timestamp: serverTimestamp(),
-      });
+      if (existingData?.id) {
+        // 既存データの更新
+        await updateDoc(doc(db, 'stockChecks', existingData.id), {
+          items: usedCounts,
+          weeklyItems: weeklyItemsTaken,
+          timestamp: serverTimestamp(),
+        });
+        alert('夕方の記録を更新しました！ 🌙');
+      } else {
+        // 新規作成
+        await addDoc(collection(db, 'stockChecks'), {
+          date: today,
+          type: 'evening',
+          items: usedCounts,
+          weeklyItems: weeklyItemsTaken,
+          userId: currentUser.uid,
+          timestamp: serverTimestamp(),
+        });
+        alert('夕方の記録を保存しました！ 🌙');
+      }
 
-      alert('夕方の記録を保存しました！ 🌙');
       onComplete();
     } catch (error) {
       console.error('保存エラー:', error);
@@ -65,7 +88,7 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack }) => {
           ← 戻る
         </button>
         <h2>🌙 夕方の記録</h2>
-        <p>今日使った着替えの枚数を記録してください</p>
+        <p>{existingData ? '今日使った着替えの枚数を更新してください' : '今日使った着替えの枚数を記録してください'}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="stock-form">
@@ -144,7 +167,10 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack }) => {
           className="submit-btn evening-submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? '保存中...' : '使用記録を保存 📝'}
+          {isSubmitting ? 
+            (existingData ? '更新中...' : '保存中...') : 
+            (existingData ? '使用記録を更新 📝' : '使用記録を保存 📝')
+          }
         </button>
       </form>
     </div>
