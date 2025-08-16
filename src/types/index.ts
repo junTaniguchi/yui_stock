@@ -5,6 +5,7 @@ export interface ClothingItem {
   required: number; // 必要な在庫数
   schedule?: 'daily' | 'weekly_monday' | 'weekly_friday'; // スケジュールタイプ
   icon: string; // アイコン（絵文字）
+  unit: string; // 数量の単位（枚、個など）
 }
 
 export interface StockCheck {
@@ -22,6 +23,7 @@ export interface DailyNeed {
   itemName: string;
   needToBring: number;
   icon: string;
+  unit: string;
   isChecked?: boolean;
 }
 

@@ -91,7 +91,7 @@ const TomorrowNeeds: React.FC<TomorrowNeedsProps> = ({ needs }) => {
             <div className="need-icon">{need.icon}</div>
             <div className="need-info">
               <span className="need-name">{need.itemName}</span>
-              <span className="need-count">{need.needToBring}枚</span>
+              <span className="need-count">{need.needToBring}{need.unit}</span>
             </div>
           </div>
         ))}

@@ -158,6 +158,7 @@ const Dashboard: React.FC = () => {
             itemName: item.name,
             needToBring: Math.ceil(needToBring),
             icon: item.icon,
+            unit: item.unit,
             isChecked: false,
           });
         }

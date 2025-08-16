@@ -8,6 +8,7 @@ export const clothingItems: ClothingItem[] = [
     required: 3,
     schedule: 'daily',
     icon: '👕',
+    unit: '枚',
   },
   {
     id: 'short_sleeve',
@@ -16,6 +17,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1.5, // 半袖と長袖合わせて3枚
     schedule: 'daily',
     icon: '👚',
+    unit: '枚',
   },
   {
     id: 'long_sleeve',
@@ -24,6 +26,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1.5, // 半袖と長袖合わせて3枚
     schedule: 'daily',
     icon: '👔',
+    unit: '枚',
   },
   {
     id: 'pants',
@@ -32,6 +35,7 @@ export const clothingItems: ClothingItem[] = [
     required: 3,
     schedule: 'daily',
     icon: '👖',
+    unit: '枚',
   },
   {
     id: 'towel',
@@ -40,6 +44,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1,
     schedule: 'daily',
     icon: '🛏️',
+    unit: '枚',
   },
   {
     id: 'contact_book',
@@ -48,6 +53,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1,
     schedule: 'daily',
     icon: '📝',
+    unit: '個',
   },
   {
     id: 'straw_mug',
@@ -56,6 +62,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1,
     schedule: 'daily',
     icon: '🥤',
+    unit: '個',
   },
   {
     id: 'swimsuit',
@@ -64,6 +71,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1,
     schedule: 'weekly_monday',
     icon: '👙',
+    unit: '枚',
   },
   {
     id: 'bed_cover',
@@ -72,6 +80,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1,
     schedule: 'weekly_friday',
     icon: '🛌',
+    unit: '枚',
   },
   {
     id: 'pillow_towel',
@@ -80,6 +89,7 @@ export const clothingItems: ClothingItem[] = [
     required: 1,
     schedule: 'weekly_friday',
     icon: '🧺',
+    unit: '枚',
   },
 ];
 
