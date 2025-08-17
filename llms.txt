@@ -1,0 +1,44 @@
+# 🌸 ゆいちゃんの保育園準備アプリ
+
+保育園の持ち物管理を効率化するPWAアプリ。朝の在庫確認、夕方の記録、翌日の準備計算、週単位アイテム管理機能を提供。
+
+## プロジェクト概要
+- **技術スタック**: React 18 + TypeScript + Firebase (Auth + Firestore)
+- **アーキテクチャ**: PWA対応のSPAアプリケーション
+- **認証**: Google OAuth 2.0
+- **デプロイ**: Firebase Hosting
+
+## 主要コンポーネント
+
+### 認証・レイアウト
+- `src/components/Login.tsx` - Googleログイン画面
+- `src/components/Layout.tsx` - 共通レイアウトコンポーネント
+- `src/contexts/AuthContext.tsx` - 認証状態管理
+
+### 主要機能
+- `src/components/Dashboard.tsx` - メインダッシュボード（週単位状態管理）
+- `src/components/MorningCheck.tsx` - 朝の在庫確認フォーム
+- `src/components/EveningCheck.tsx` - 夕方の使用記録フォーム
+- `src/components/TomorrowNeeds.tsx` - 翌日の必要アイテム表示（チェック機能）
+- `src/components/WeeklyItems.tsx` - 週単位アイテム管理
+- `src/components/NurseryStockView.tsx` - 保育園在庫表示
+
+### 設定・型定義
+- `src/config/items.ts` - アイテム定義（種類、必要数、アイコン、スケジュール）
+- `src/types/index.ts` - TypeScript型定義
+- `src/firebase.ts` - Firebase設定
+
+### PWA関連
+- `src/hooks/usePWA.ts` - PWAインストール機能
+- `src/components/InstallPrompt.tsx` - アプリインストール促進UI
+
+## データモデル
+- **StockCheck**: 日々の在庫確認・使用記録
+- **WeeklyItemStatus**: 週単位アイテムの状態追跡
+- **ClothingItem**: アイテム定義（必要在庫数、スケジュール等）
+
+## 主要機能
+1. **日常管理**: 朝の在庫確認→夕方の記録→翌日の準備計算
+2. **週単位管理**: 水着、布団カバー等の持参・持ち帰りスケジュール管理
+3. **チェック機能**: 準備完了度の視覚的表示（プログレスバー）
+4. **インテリジェント状態管理**: 実際の持参・持ち帰り記録に基づく柔軟なリマインダー

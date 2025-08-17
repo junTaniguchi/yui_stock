@@ -1,0 +1,312 @@
+# ゆいちゃんの保育園準備アプリ - プロジェクト詳細ドキュメント
+
+## プロジェクト概要
+保育園児の着替えや持ち物の在庫管理を行うReact/TypeScript製PWAアプリケーション。Firebase認証とFirestoreデータベースを使用し、朝の在庫確認、夕方の使用記録、翌日の必要物品計算を自動化する。
+
+## 主要ファイル詳細分析
+
+### 1. ダッシュボード - Dashboard.tsx
+**ファイルの役割**: アプリケーションのメインコントローラーとして、全体の状態管理と画面遷移を担当
+
+**主要機能**:
+- 朝の在庫確認、夕方の記録入力、翌日の準備物計算
+- 複雑な在庫計算ロジック（グループアイテム対応）
+- 週単位アイテムの状態追跡
+
+**重要な関数・コンポーネント**:
+- `loadTodayData()`: 今日・昨日のFirestoreデータ取得
+- `calculateTomorrowNeeds()`: 翌日必要物品の計算ロジック
+- `calculateNurseryStocks()`: 保育園在庫の現在状況計算
+- `loadWeeklyItemStatuses()`: 週単位アイテムの状態管理
+
+**他のファイルとの関連性**:
+- `AuthContext`: ユーザー認証状態の取得
+- `config/items.ts`: アイテム設定の読み込み
+- `types/index.ts`: 型定義の使用
+- 各種子コンポーネント（MorningCheck, EveningCheck等）との連携
+
+**重要な計算ロジック**:
+```typescript
+// 上着（グループアイテム）の必要数計算
+const nurseryStock = Math.max(0, totalMorningStock - totalTakenHomeToday);
+const needToBring = Math.max(0, 3 - nurseryStock);
+
+// 肌着・ズボンの必要数計算
+needToBring = Math.max(0, 3 - nurseryStock);
+
+// 毎日持ち帰りアイテム（連絡帳等）
+needToBring = 1;
+```
+
+### 2. 朝の在庫確認 - MorningCheck.tsx
+**ファイルの役割**: 保育園にある着替えの枚数をチェック・記録するフォーム
+
+**主要機能**:
+- 数値入力制限（タオル・連絡帳・ストローマグ・ビニール袋は0-1のみ）
+- 週単位アイテムの持参チェック
+- 既存データの更新対応
+
+**重要な関数・コンポーネント**:
+- `handleCountChange()`: 入力値制限とバリデーション
+- `handleSubmit()`: Firestoreへのデータ保存/更新
+
+**他のファイルとの関連性**:
+- `config/items.ts`: dailyItems, weeklyItemsの使用
+- `firebase.ts`: Firestore操作
+- Dashboard.tsxから呼び出され、完了時にコールバック実行
+
+### 3. 夕方の記録 - EveningCheck.tsx
+**ファイルの役割**: 今日使用した着替えの枚数を記録するフォーム
+
+**主要機能**:
+- MorningCheckと同様の入力制限
+- 週単位アイテムの持ち帰りチェック
+- 使用枚数の記録
+
+**重要な関数・コンポーネント**:
+- MorningCheckとほぼ同じ構造
+- `handleSubmit()`: typeを'evening'として保存
+
+**他のファイルとの関連性**:
+- MorningCheckと同じ依存関係
+- Dashboard.tsxの計算ロジックで使用される
+
+### 4. 翌日の準備物 - TomorrowNeeds.tsx
+**ファイルの役割**: 計算された翌日必要物品の表示とチェックリスト機能
+
+**主要機能**:
+- 進捗バー表示
+- ローカルストレージによるチェック状態保持
+- タッチ操作対応
+
+**重要な関数・コンポーネント**:
+- `handleCheck()`: チェック状態の切り替え
+- `handleInteraction()`: マウス・タッチイベント処理
+- プログレスバー計算とCSS連携
+
+**他のファイルとの関連性**:
+- `types/index.ts`: DailyNeed型の使用
+- Dashboard.tsxから計算結果を受け取り
+
+**型定義**:
+```typescript
+interface DailyNeed {
+  itemId: string;
+  itemName: string;
+  needToBring: number;
+  icon: string;
+  unit: string;
+  isChecked?: boolean;
+}
+```
+
+### 5. 週単位アイテム - WeeklyItems.tsx
+**ファイルの役割**: 水着・布団カバー等の週単位準備物の表示
+
+**主要機能**:
+- 曜日別アクション表示（持参/持ち帰り）
+- ローカルストレージによるチェック状態管理
+
+**重要な関数・コンポーネント**:
+- `getDayText()`: 曜日の日本語変換
+- `getActionIcon()`: アクション別アイコン表示
+- チェック機能（TomorrowNeedsと同様）
+
+**他のファイルとの関連性**:
+- `types/index.ts`: WeeklyNeed型の使用
+- Dashboard.tsxから週単位計算結果を受け取り
+
+### 6. ログイン - Login.tsx
+**ファイルの役割**: Google認証によるログイン画面
+
+**主要機能**:
+- シンプルなGoogle OAuth連携
+- 保育園アプリらしいUI/UX
+
+**重要な関数・コンポーネント**:
+- `handleGoogleSignIn()`: Google認証の実行
+
+**他のファイルとの関連性**:
+- `AuthContext`: 認証機能の使用
+
+### 7. レイアウト - Layout.tsx
+**ファイルの役割**: 共通のヘッダー・レイアウト提供
+
+**主要機能**:
+- ユーザー情報表示
+- ログアウト機能
+- レスポンシブレイアウト
+
+**重要な関数・コンポーネント**:
+- `handleLogout()`: ログアウト処理
+
+**他のファイルとの関連性**:
+- 全画面で共通使用
+- `AuthContext`: ユーザー情報取得
+
+### 8. 認証コンテキスト - AuthContext.tsx
+**ファイルの役割**: Firebase認証の状態管理とAPIラッパー
+
+**主要機能**:
+- 認証状態の監視
+- Google認証・ログアウト機能
+- ローディング状態管理
+
+**重要な関数・コンポーネント**:
+- `useAuth()`: カスタムフック
+- `AuthProvider`: Reactコンテキストプロバイダー
+- `onAuthStateChanged`: Firebase認証状態監視
+
+**他のファイルとの関連性**:
+- 全コンポーネントで認証状態を使用
+- `firebase.ts`: Firebase設定の使用
+
+**型定義**:
+```typescript
+interface AuthContextType {
+  currentUser: User | null;
+  loading: boolean;
+  signInWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+}
+```
+
+### 9. アイテム設定 - config/items.ts
+**ファイルの役割**: 保育園アイテムのマスターデータ定義
+
+**主要機能**:
+- 全アイテムの設定情報（必要数、スケジュール、アイコン等）
+- グループアイテム設定（上着の半袖・長袖）
+- 日別・週別アイテムの分類
+
+**重要な設定項目**:
+- `required`: 必要在庫数
+- `schedule`: 'daily' | 'weekly_monday' | 'weekly_friday'
+- `group`, `groupRequired`: グループアイテム設定
+- `takesHomeDaily`: 毎日持ち帰りフラグ
+
+**他のファイルとの関連性**:
+- Dashboard.tsx: 計算ロジックで使用
+- MorningCheck.tsx, EveningCheck.tsx: フォーム表示で使用
+- `types/index.ts`: ClothingItem型の実装
+
+**アイテム分類**:
+```typescript
+// 毎日必要なアイテム
+export const dailyItems = clothingItems.filter(item => 
+  ['underwear', 'short_sleeve', 'long_sleeve', 'pants', 'towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id)
+);
+
+// 週次アイテム  
+export const weeklyItems = clothingItems.filter(item => 
+  ['swimsuit', 'bed_cover', 'pillow_towel'].includes(item.id)
+);
+```
+
+### 10. 型定義 - types/index.ts
+**ファイルの役割**: アプリケーション全体で使用する型定義の集約
+
+**主要な型定義**:
+
+**ClothingItem**: アイテムマスター型
+```typescript
+export interface ClothingItem {
+  id: string;
+  name: string;
+  type: 'underwear' | 'short_sleeve' | 'long_sleeve' | 'pants' | 'towel' | 'swimsuit' | 'bed_cover' | 'pillow_towel' | 'contact_book' | 'straw_mug' | 'plastic_bag';
+  required: number;
+  schedule?: 'daily' | 'weekly_monday' | 'weekly_friday';
+  icon: string;
+  unit: string;
+  group?: string;
+  groupRequired?: number;
+  takesHomeDaily?: boolean;
+}
+```
+
+**StockCheck**: 在庫チェック記録型
+```typescript
+export interface StockCheck {
+  id?: string;
+  date: string;
+  type: 'morning' | 'evening';
+  items: Record<string, number>;
+  weeklyItems?: Record<string, boolean>;
+  userId: string;
+  timestamp: Date;
+}
+```
+
+**その他重要型**:
+- `DailyNeed`: 翌日必要物品
+- `WeeklyNeed`: 週単位必要物品
+- `WeeklyItemStatus`: 週単位アイテム状態
+- `NurseryStock`: 保育園在庫状況
+
+### 11. Firebase設定 - firebase.ts
+**ファイルの役割**: Firebase初期化とサービス設定
+
+**主要機能**:
+- Firebase SDK初期化
+- 認証・Firestore・ストレージの設定
+- 環境設定の集約
+
+**エクスポート機能**:
+- `auth`: Firebase認証
+- `googleProvider`: Google認証プロバイダー
+- `db`: Firestoreデータベース
+
+**他のファイルとの関連性**:
+- 全Firebaseサービス使用箇所で参照
+- 本番環境では環境変数化推奨
+
+### 12. PWAフック - hooks/usePWA.ts
+**ファイルの役割**: PWA（Progressive Web App）機能の管理
+
+**主要機能**:
+- PWAインストール状態の検出
+- プラットフォーム判定（iOS/Android/Desktop）
+- インストール可能性の監視
+- CSSクラス自動適用
+
+**重要な関数・コンポーネント**:
+- `usePWA()`: PWA状態管理フック
+- `usePWAStyles()`: CSS自動適用フック
+- プラットフォーム検出ロジック
+
+**状態管理**:
+```typescript
+interface PWAStatus {
+  isInstallable: boolean;
+  isInstalled: boolean;
+  isStandalone: boolean;
+  isIOS: boolean;
+  platform: 'ios' | 'android' | 'desktop' | 'unknown';
+}
+```
+
+**他のファイルとの関連性**:
+- App.tsxで使用（推測）
+- モバイルUX向上のためのスタイル適用
+
+## アーキテクチャ特徴
+
+### データフロー
+1. **認証**: AuthContext → 全コンポーネント
+2. **在庫管理**: Dashboard → MorningCheck/EveningCheck → Firestore
+3. **計算**: Dashboard内ロジック → TomorrowNeeds/WeeklyItems
+4. **状態保持**: Firestore（永続） + localStorage（一時）
+
+### 計算ロジックの特徴
+- **グループアイテム対応**: 上着（半袖・長袖）の合計管理
+- **複雑な必要数計算**: `保育園在庫 = 朝在庫 - 持ち帰り数`
+- **アイテム別制約**: 一部アイテムは0-1制限
+- **週単位状態追跡**: 過去2週間データから現在位置推定
+
+### PWA対応
+- モバイルファーストデザイン
+- オフライン対応（localStorage）
+- インストール可能
+- プラットフォーム別最適化
+
+このアプリケーションは、保育園の日常的な持ち物管理を自動化し、親の負担を軽減する実用的なツールとして設計されています。
