@@ -3,7 +3,7 @@ import { collection, query, where, limit, getDocs, orderBy } from 'firebase/fire
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { StockCheck, DailyNeed, WeeklyNeed, WeeklyItemStatus, NurseryStock } from '../types';
-import { clothingItems, weeklyItems } from '../config/items';
+import { clothingItems, weeklyItems, dailyItems } from '../config/items';
 import Layout from './Layout';
 import MorningCheck from './MorningCheck';
 import EveningCheck from './EveningCheck';
@@ -60,6 +60,8 @@ const Dashboard: React.FC = () => {
       if (!morningSnapshot.empty) {
         const doc = morningSnapshot.docs[0];
         setTodayMorningCheck({ id: doc.id, ...doc.data() } as StockCheck);
+      } else {
+        setTodayMorningCheck(null);
       }
 
       // 今日の夕方のチェックを取得
@@ -75,6 +77,8 @@ const Dashboard: React.FC = () => {
       if (!todayEveningSnapshot.empty) {
         const doc = todayEveningSnapshot.docs[0];
         setTodayEveningCheck({ id: doc.id, ...doc.data() } as StockCheck);
+      } else {
+        setTodayEveningCheck(null);
       }
 
       // 昨日の夕方のチェックを取得
@@ -100,17 +104,10 @@ const Dashboard: React.FC = () => {
     if (!currentUser) return;
 
     try {
-      // 過去2週間のデータを取得して週単位アイテムの状態を判断
-      const twoWeeksAgo = new Date();
-      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-      const twoWeeksAgoStr = twoWeeksAgo.toISOString().split('T')[0];
-
+      // 一時的にシンプルなクエリのみ使用してインデックスエラーを回避
       const weeklyQuery = query(
         collection(db, 'stockChecks'),
-        where('userId', '==', currentUser.uid),
-        where('date', '>=', twoWeeksAgoStr),
-        orderBy('date', 'desc'),
-        orderBy('timestamp', 'desc')
+        where('userId', '==', currentUser.uid)
       );
 
       const querySnapshot = await getDocs(weeklyQuery);
@@ -124,8 +121,32 @@ const Dashboard: React.FC = () => {
         };
       });
 
-      // データを日付順に処理して最新の状態を判断
-      querySnapshot.docs.forEach(doc => {
+      // 過去2週間のデータのみをフィルタして処理
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      const twoWeeksAgoStr = twoWeeksAgo.toISOString().split('T')[0];
+
+      // データを日付でフィルタしてから日付順に処理して最新の状態を判断
+      const filteredDocs = querySnapshot.docs
+        .filter(doc => {
+          const data = doc.data() as StockCheck;
+          return data.date >= twoWeeksAgoStr;
+        })
+        .sort((a, b) => {
+          const aData = a.data() as StockCheck;
+          const bData = b.data() as StockCheck;
+          // 日付で降順ソート、同じ日付なら timestamp で降順ソート
+          if (aData.date !== bData.date) {
+            return bData.date.localeCompare(aData.date);
+          }
+          const aTime = aData.timestamp ? 
+            ((aData.timestamp as any).toMillis ? (aData.timestamp as any).toMillis() : (aData.timestamp as Date).getTime()) : 0;
+          const bTime = bData.timestamp ? 
+            ((bData.timestamp as any).toMillis ? (bData.timestamp as any).toMillis() : (bData.timestamp as Date).getTime()) : 0;
+          return bTime - aTime;
+        });
+
+      filteredDocs.forEach(doc => {
         const data = doc.data() as StockCheck;
         if (data.weeklyItems) {
           Object.entries(data.weeklyItems).forEach(([itemId, action]) => {
@@ -279,14 +300,14 @@ const Dashboard: React.FC = () => {
       if (!status) return;
 
       if (item.schedule === 'weekly_monday') {
-        // 水着: 家にある状態なら持参を提案
-        if (status.currentStatus === 'at_home') {
+        // 水着: 明日が月曜日で家にある状態なら持参を提案
+        if (tomorrowDayOfWeek === 1 && status.currentStatus === 'at_home') {
           needs.push({
             itemId: item.id,
             itemName: item.name,
             dayOfWeek: 'monday',
             action: 'bring',
-            description: '新しい水着を持参（金曜日まで保育園で保管）',
+            description: '明日は月曜日！新しい水着を持参（金曜日まで保育園で保管）',
             icon: item.icon,
             isChecked: false,
           });
@@ -326,10 +347,10 @@ const Dashboard: React.FC = () => {
       const status = weeklyItemStatuses[item.id];
       if (!status) return;
 
-      // 今週まだ持参していない水着があれば任意の平日に提案
+      // 今週まだ持参していない水着があれば平日（月曜日以外）に提案
       if (item.schedule === 'weekly_monday' && 
           status.currentStatus === 'at_home' &&
-          tomorrowDayOfWeek >= 1 && tomorrowDayOfWeek <= 5) {
+          tomorrowDayOfWeek >= 2 && tomorrowDayOfWeek <= 5) { // 火曜日から金曜日
         
         const lastBroughtWeek = status.lastBroughtDate ? 
           getWeekNumber(new Date(status.lastBroughtDate + 'T00:00:00')) : 0;
@@ -361,6 +382,36 @@ const Dashboard: React.FC = () => {
     return Math.ceil(diff / (7 * 24 * 60 * 60 * 1000));
   };
 
+  // 朝の在庫確認が実際に入力されているかチェック
+  const isMorningCheckComplete = () => {
+    if (!todayMorningCheck) {
+      console.log('朝のチェック: データなし');
+      return false;
+    }
+    
+    // 今日の日付かどうかを確認
+    const today = new Date().toISOString().split('T')[0];
+    console.log('今日の日付:', today, '、データの日付:', todayMorningCheck.date);
+    
+    if (todayMorningCheck.date !== today) {
+      console.log('朝のチェック: 古いデータのため未完了扱い');
+      return false;
+    }
+    
+    // 日常アイテムが1つでも入力されているかチェック
+    console.log('朝のチェックデータ:', todayMorningCheck.items);
+    console.log('朝のチェック作成日時:', todayMorningCheck.timestamp);
+    console.log('朝のチェックID:', todayMorningCheck.id);
+    const hasAnyDailyInput = dailyItems.some(item => {
+      const count = todayMorningCheck.items[item.id] || 0;
+      console.log(`${item.name}(${item.id}): ${count}`);
+      return count > 0;
+    });
+    
+    console.log('完了判定結果:', hasAnyDailyInput);
+    return hasAnyDailyInput;
+  };
+
   const renderHomeView = () => (
     <div className="dashboard-home">
       <div className="welcome-section">
@@ -376,7 +427,7 @@ const Dashboard: React.FC = () => {
           <span className="btn-icon">🌅</span>
           <div>
             <h3>朝の在庫確認</h3>
-            <p>{todayMorningCheck ? '✅ 完了済み（再編集可能）' : '保育園の在庫をチェック'}</p>
+            <p>{isMorningCheckComplete() ? '✅ 完了済み（再編集可能）' : '保育園の在庫をチェック'}</p>
           </div>
         </button>
 
