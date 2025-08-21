@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, limit, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { StockCheck, DailyNeed, WeeklyNeed, WeeklyItemStatus, NurseryStock } from '../types';
@@ -17,8 +17,8 @@ type ViewType = 'home' | 'morning' | 'evening';
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('home');
-  const [todayMorningCheck, setTodayMorningCheck] = useState<StockCheck | null>(null);
-  const [todayEveningCheck, setTodayEveningCheck] = useState<StockCheck | null>(null);
+  const [latestMorningCheck, setLatestMorningCheck] = useState<StockCheck | null>(null);
+  const [sameDayEveningCheck, setSameDayEveningCheck] = useState<StockCheck | null>(null);
   const [yesterdayEveningCheck, setYesterdayEveningCheck] = useState<StockCheck | null>(null);
   const [tomorrowNeeds, setTomorrowNeeds] = useState<DailyNeed[]>([]);
   const [weeklyNeeds, setWeeklyNeeds] = useState<WeeklyNeed[]>([]);
@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (currentUser) {
-      loadTodayData();
+      loadLatestStockData();
       loadWeeklyItemStatuses();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -41,62 +41,89 @@ const Dashboard: React.FC = () => {
     calculateWeeklyNeeds();
     calculateNurseryStocks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todayMorningCheck, todayEveningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
+  }, [latestMorningCheck, sameDayEveningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
 
-  const loadTodayData = async () => {
-    if (!currentUser) return;
+  const loadLatestStockData = async () => {
+    console.log('最新在庫データ読み込み開始 - currentUser:', currentUser);
+    if (!currentUser) {
+      console.log('currentUserなし - データ読み込みスキップ');
+      return;
+    }
 
     try {
-      // 今日の朝のチェックを取得
+      // 朝の在庫確認データを全て取得してクライアントサイドでソート
       const morningQuery = query(
         collection(db, 'stockChecks'),
-        where('userId', '==', currentUser.uid),
-        where('date', '==', today),
-        where('type', '==', 'morning'),
-        limit(1)
+        where('type', '==', 'morning')
       );
       
       const morningSnapshot = await getDocs(morningQuery);
-      if (!morningSnapshot.empty) {
-        const doc = morningSnapshot.docs[0];
-        setTodayMorningCheck({ id: doc.id, ...doc.data() } as StockCheck);
-      } else {
-        setTodayMorningCheck(null);
-      }
-
-      // 今日の夕方のチェックを取得
-      const todayEveningQuery = query(
-        collection(db, 'stockChecks'),
-        where('userId', '==', currentUser.uid),
-        where('date', '==', today),
-        where('type', '==', 'evening'),
-        limit(1)
-      );
       
-      const todayEveningSnapshot = await getDocs(todayEveningQuery);
-      if (!todayEveningSnapshot.empty) {
-        const doc = todayEveningSnapshot.docs[0];
-        setTodayEveningCheck({ id: doc.id, ...doc.data() } as StockCheck);
+      // 日付の降順でソートして最新を取得
+      const sortedMorningDocs = morningSnapshot.docs.sort((a, b) => {
+        const aData = a.data();
+        const bData = b.data();
+        return bData.date.localeCompare(aData.date);
+      });
+      console.log('朝データ全体クエリ結果:', morningSnapshot.size, '件');
+      console.log('ソート後の最新朝データ数:', sortedMorningDocs.length, '件');
+      
+      if (sortedMorningDocs.length > 0) {
+        const morningDoc = sortedMorningDocs[0];
+        const morningData = morningDoc.data() as StockCheck;
+        console.log('最新の朝データ:', morningData);
+        
+        setLatestMorningCheck({ id: morningDoc.id, ...morningData });
+        
+        // 同じ日付の夕方データを取得
+        const sameDayEveningQuery = query(
+          collection(db, 'stockChecks'),
+          where('date', '==', morningData.date),
+          where('type', '==', 'evening'),
+          limit(1)
+        );
+        
+        const sameDayEveningSnapshot = await getDocs(sameDayEveningQuery);
+        console.log(`${morningData.date}の夕方データクエリ結果:`, sameDayEveningSnapshot.size, '件');
+        
+        if (!sameDayEveningSnapshot.empty) {
+          const eveningDoc = sameDayEveningSnapshot.docs[0];
+          const eveningData = eveningDoc.data() as StockCheck;
+          console.log('同じ日の夕方データ:', eveningData);
+          setSameDayEveningCheck({ id: eveningDoc.id, ...eveningData });
+        } else {
+          console.log('同じ日の夕方データなし');
+          setSameDayEveningCheck(null);
+        }
       } else {
-        setTodayEveningCheck(null);
+        console.log('朝の在庫データが見つかりません');
+        setLatestMorningCheck(null);
+        setSameDayEveningCheck(null);
       }
 
-      // 昨日の夕方のチェックを取得
-      const eveningQuery = query(
+      // 昨日の夕方データも取得（翌日計算用）
+      const yesterdayEveningQuery = query(
         collection(db, 'stockChecks'),
-        where('userId', '==', currentUser.uid),
         where('date', '==', yesterday),
         where('type', '==', 'evening'),
         limit(1)
       );
       
-      const eveningSnapshot = await getDocs(eveningQuery);
-      if (!eveningSnapshot.empty) {
-        const doc = eveningSnapshot.docs[0];
+      const yesterdayEveningSnapshot = await getDocs(yesterdayEveningQuery);
+      if (!yesterdayEveningSnapshot.empty) {
+        const doc = yesterdayEveningSnapshot.docs[0];
         setYesterdayEveningCheck({ id: doc.id, ...doc.data() } as StockCheck);
+      } else {
+        setYesterdayEveningCheck(null);
       }
+      
     } catch (error) {
       console.error('データ読み込みエラー:', error);
+      console.error('エラー詳細:', {
+        code: (error as any).code,
+        message: (error as any).message,
+        userId: currentUser?.uid
+      });
     }
   };
 
@@ -104,10 +131,9 @@ const Dashboard: React.FC = () => {
     if (!currentUser) return;
 
     try {
-      // 一時的にシンプルなクエリのみ使用してインデックスエラーを回避
+      // 全ユーザー共有のため、userIdフィルタを除去
       const weeklyQuery = query(
-        collection(db, 'stockChecks'),
-        where('userId', '==', currentUser.uid)
+        collection(db, 'stockChecks')
       );
 
       const querySnapshot = await getDocs(weeklyQuery);
@@ -188,15 +214,15 @@ const Dashboard: React.FC = () => {
           let totalTakenHomeToday = 0;
 
           groupItems.forEach(groupItem => {
-            if (todayMorningCheck) {
-              totalMorningStock += todayMorningCheck.items[groupItem.id] || 0;
+            if (latestMorningCheck) {
+              totalMorningStock += latestMorningCheck.items[groupItem.id] || 0;
             }
-            if (todayEveningCheck) {
-              totalTakenHomeToday += todayEveningCheck.items[groupItem.id] || 0;
+            if (sameDayEveningCheck) {
+              totalTakenHomeToday += sameDayEveningCheck.items[groupItem.id] || 0;
             }
           });
 
-          // 保育園在庫 = 朝の在庫 - 今日持ち帰った数
+          // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
           const nurseryStock = Math.max(0, totalMorningStock - totalTakenHomeToday);
           // 上着の場合: 翌日持っていく在庫 = 3 - SUM(保育園在庫の半袖、保育園在庫の長袖)
           const needToBring = Math.max(0, 3 - nurseryStock);
@@ -215,18 +241,18 @@ const Dashboard: React.FC = () => {
         // 単独アイテムの場合
         else if (!item.group) {
           let morningStock = 0;
-          let takenHomeToday = 0;
+          let takenHomeSameDay = 0;
 
-          if (todayMorningCheck) {
-            morningStock = todayMorningCheck.items[item.id] || 0;
+          if (latestMorningCheck) {
+            morningStock = latestMorningCheck.items[item.id] || 0;
           }
 
-          if (todayEveningCheck) {
-            takenHomeToday = todayEveningCheck.items[item.id] || 0;
+          if (sameDayEveningCheck) {
+            takenHomeSameDay = sameDayEveningCheck.items[item.id] || 0;
           }
 
-          // 保育園在庫 = 朝の在庫 - 今日持ち帰った数
-          const nurseryStock = Math.max(0, morningStock - takenHomeToday);
+          // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
+          const nurseryStock = Math.max(0, morningStock - takenHomeSameDay);
           
           let needToBring = 0;
           
@@ -259,21 +285,30 @@ const Dashboard: React.FC = () => {
   const calculateNurseryStocks = () => {
     const stocks: NurseryStock[] = [];
     
+    console.log('保育園在庫計算開始（最新ロジック）');
+    console.log('最新朝データ:', latestMorningCheck);
+    console.log('同日夕方データ:', sameDayEveningCheck);
+    
     clothingItems.forEach(item => {
       if (item.schedule === 'daily') {
         let morningStock = 0;
-        let takenHomeToday = 0;
+        let takenHomeSameDay = 0;
 
-        if (todayMorningCheck) {
-          morningStock = todayMorningCheck.items[item.id] || 0;
+        // 最新の朝の在庫数
+        if (latestMorningCheck) {
+          morningStock = latestMorningCheck.items[item.id] || 0;
         }
 
-        if (todayEveningCheck) {
-          takenHomeToday = todayEveningCheck.items[item.id] || 0;
+        // 同じ日の夕方の持ち帰り数
+        if (sameDayEveningCheck) {
+          takenHomeSameDay = sameDayEveningCheck.items[item.id] || 0;
         }
 
-        // 保育園在庫 = 朝の在庫 - 今日持ち帰った数
-        const currentStock = Math.max(0, morningStock - takenHomeToday);
+        console.log(`${item.name}: 最新朝在庫=${morningStock}, 同日持ち帰り=${takenHomeSameDay}`);
+        console.log(`　朝データ日付: ${latestMorningCheck?.date || 'なし'}, 夕方データ日付: ${sameDayEveningCheck?.date || 'なし'}`);
+
+        // 保育園在庫 = 最新朝の在庫 - 同じ日の夕方持ち帰り数
+        const currentStock = Math.max(0, morningStock - takenHomeSameDay);
         
         stocks.push({
           itemId: item.id,
@@ -384,31 +419,23 @@ const Dashboard: React.FC = () => {
 
   // 朝の在庫確認が実際に入力されているかチェック
   const isMorningCheckComplete = () => {
-    if (!todayMorningCheck) {
-      console.log('朝のチェック: データなし');
+    if (!latestMorningCheck) {
       return false;
     }
     
     // 今日の日付かどうかを確認
     const today = new Date().toISOString().split('T')[0];
-    console.log('今日の日付:', today, '、データの日付:', todayMorningCheck.date);
     
-    if (todayMorningCheck.date !== today) {
-      console.log('朝のチェック: 古いデータのため未完了扱い');
+    if (latestMorningCheck.date !== today) {
       return false;
     }
     
     // 日常アイテムが1つでも入力されているかチェック
-    console.log('朝のチェックデータ:', todayMorningCheck.items);
-    console.log('朝のチェック作成日時:', todayMorningCheck.timestamp);
-    console.log('朝のチェックID:', todayMorningCheck.id);
     const hasAnyDailyInput = dailyItems.some(item => {
-      const count = todayMorningCheck.items[item.id] || 0;
-      console.log(`${item.name}(${item.id}): ${count}`);
+      const count = latestMorningCheck.items[item.id] || 0;
       return count > 0;
     });
     
-    console.log('完了判定結果:', hasAnyDailyInput);
     return hasAnyDailyInput;
   };
 
@@ -438,7 +465,7 @@ const Dashboard: React.FC = () => {
           <span className="btn-icon">🌙</span>
           <div>
             <h3>夕方の記録</h3>
-            <p>{todayEveningCheck ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
+            <p>{(sameDayEveningCheck && sameDayEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
           </div>
         </button>
       </div>
@@ -463,7 +490,7 @@ const Dashboard: React.FC = () => {
   );
 
   const handleDataUpdate = () => {
-    loadTodayData();
+    loadLatestStockData();
     loadWeeklyItemStatuses(); // 週単位アイテムの状態も更新
     setCurrentView('home');
   };
@@ -475,10 +502,10 @@ const Dashboard: React.FC = () => {
           <MorningCheck 
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
-            existingData={todayMorningCheck ? {
-              id: todayMorningCheck.id!,
-              items: todayMorningCheck.items,
-              weeklyItems: todayMorningCheck.weeklyItems
+            existingData={(latestMorningCheck && latestMorningCheck.date === today) ? {
+              id: latestMorningCheck.id!,
+              items: latestMorningCheck.items,
+              weeklyItems: latestMorningCheck.weeklyItems
             } : undefined}
           />
         </Layout>
@@ -490,10 +517,10 @@ const Dashboard: React.FC = () => {
           <EveningCheck 
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
-            existingData={todayEveningCheck ? {
-              id: todayEveningCheck.id!,
-              items: todayEveningCheck.items,
-              weeklyItems: todayEveningCheck.weeklyItems
+            existingData={(sameDayEveningCheck && sameDayEveningCheck.date === today) ? {
+              id: sameDayEveningCheck.id!,
+              items: sameDayEveningCheck.items,
+              weeklyItems: sameDayEveningCheck.weeklyItems
             } : undefined}
           />
         </Layout>

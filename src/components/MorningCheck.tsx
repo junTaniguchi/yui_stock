@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { dailyItems, weeklyItems } from '../config/items';
@@ -64,7 +64,7 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
         await updateDoc(doc(db, 'stockChecks', existingData.id), {
           items: counts,
           weeklyItems: weeklyItemsBrought,
-          timestamp: serverTimestamp(),
+          timestamp: new Date(), // 日本時間でタイムスタンプ作成
         });
         alert('朝の在庫確認を更新しました！ 🌅');
       } else {
@@ -75,7 +75,7 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
           items: counts,
           weeklyItems: weeklyItemsBrought,
           userId: currentUser.uid,
-          timestamp: serverTimestamp(),
+          timestamp: new Date(), // 日本時間でタイムスタンプ作成
         });
         alert('朝の在庫確認を保存しました！ 🌅');
       }
