@@ -25,8 +25,15 @@ const Dashboard: React.FC = () => {
   const [weeklyItemStatuses, setWeeklyItemStatuses] = useState<Record<string, WeeklyItemStatus>>({});
   const [nurseryStocks, setNurseryStocks] = useState<NurseryStock[]>([]);
 
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  // 日本時闳での日付を取得
+  const getJapanDate = (daysOffset: number = 0) => {
+    const now = new Date();
+    const japanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+    japanTime.setDate(japanTime.getDate() + daysOffset);
+    return japanTime.toISOString().split('T')[0];
+  };
+  const today = getJapanDate();
+  const yesterday = getJapanDate(-1);
 
   useEffect(() => {
     if (currentUser) {
@@ -72,7 +79,6 @@ const Dashboard: React.FC = () => {
         const morningDoc = sortedMorningDocs[0];
         const morningData = morningDoc.data() as StockCheck;
         console.log('最新の朝データ:', morningData);
-        
         setLatestMorningCheck({ id: morningDoc.id, ...morningData });
         
         // 同じ日付の夕方データを取得
@@ -289,6 +295,13 @@ const Dashboard: React.FC = () => {
     console.log('最新朝データ:', latestMorningCheck);
     console.log('同日夕方データ:', sameDayEveningCheck);
     
+    // データ読み込み中はスキップ
+    if (!latestMorningCheck) {
+      console.log('朝データ未読み込みのため在庫計算スキップ');
+      setNurseryStocks([]);
+      return;
+    }
+    
     clothingItems.forEach(item => {
       if (item.schedule === 'daily') {
         let morningStock = 0;
@@ -424,7 +437,7 @@ const Dashboard: React.FC = () => {
     }
     
     // 今日の日付かどうかを確認
-    const today = new Date().toISOString().split('T')[0];
+    const today = getJapanDate();
     
     if (latestMorningCheck.date !== today) {
       return false;

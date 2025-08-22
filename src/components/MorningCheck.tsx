@@ -21,7 +21,13 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
   const [weeklyItemsBrought, setWeeklyItemsBrought] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const today = new Date().toISOString().split('T')[0];
+  // 日本時間での今日の日付を取得
+  const getJapanDate = () => {
+    const now = new Date();
+    const japanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+    return japanTime.toISOString().split('T')[0];
+  };
+  // const today = getJapanDate(); // 使用されていないためコメントアウト
 
   useEffect(() => {
     if (existingData) {
@@ -70,7 +76,7 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
       } else {
         // 新規作成
         await addDoc(collection(db, 'stockChecks'), {
-          date: today,
+          date: getJapanDate(), // 保存時の日本時間日付
           type: 'morning',
           items: counts,
           weeklyItems: weeklyItemsBrought,
