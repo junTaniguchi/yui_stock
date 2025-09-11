@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [latestMorningCheck, setLatestMorningCheck] = useState<StockCheck | null>(null);
-  const [sameDayEveningCheck, setSameDayEveningCheck] = useState<StockCheck | null>(null);
+  const [latestEveningCheck, setLatestEveningCheck] = useState<StockCheck | null>(null);
   const [yesterdayEveningCheck, setYesterdayEveningCheck] = useState<StockCheck | null>(null);
   const [tomorrowNeeds, setTomorrowNeeds] = useState<DailyNeed[]>([]);
   const [weeklyNeeds, setWeeklyNeeds] = useState<WeeklyNeed[]>([]);
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
     calculateWeeklyNeeds();
     calculateNurseryStocks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latestMorningCheck, sameDayEveningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
+  }, [latestMorningCheck, latestEveningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
 
   const loadLatestStockData = async () => {
     console.log('最新在庫データ読み込み開始 - currentUser:', currentUser);
@@ -81,30 +81,42 @@ const Dashboard: React.FC = () => {
         console.log('最新の朝データ:', morningData);
         setLatestMorningCheck({ id: morningDoc.id, ...morningData });
         
-        // 同じ日付の夕方データを取得
-        const sameDayEveningQuery = query(
+        // 最新朝在庫日付以降の最新夕方データを取得
+        const eveningQuery = query(
           collection(db, 'stockChecks'),
-          where('date', '==', morningData.date),
-          where('type', '==', 'evening'),
-          limit(1)
+          where('type', '==', 'evening')
         );
         
-        const sameDayEveningSnapshot = await getDocs(sameDayEveningQuery);
-        console.log(`${morningData.date}の夕方データクエリ結果:`, sameDayEveningSnapshot.size, '件');
+        const eveningSnapshot = await getDocs(eveningQuery);
+        console.log('夕方データ全体クエリ結果:', eveningSnapshot.size, '件');
         
-        if (!sameDayEveningSnapshot.empty) {
-          const eveningDoc = sameDayEveningSnapshot.docs[0];
-          const eveningData = eveningDoc.data() as StockCheck;
-          console.log('同じ日の夕方データ:', eveningData);
-          setSameDayEveningCheck({ id: eveningDoc.id, ...eveningData });
+        // 最新朝在庫日付以降の夕方データを日付降順でソート
+        const futureEveningDocs = eveningSnapshot.docs
+          .filter(doc => {
+            const data = doc.data() as StockCheck;
+            return data.date >= morningData.date;
+          })
+          .sort((a, b) => {
+            const aData = a.data();
+            const bData = b.data();
+            return bData.date.localeCompare(aData.date);
+          });
+        
+        console.log(`${morningData.date}以降の夕方データ数:`, futureEveningDocs.length, '件');
+        
+        if (futureEveningDocs.length > 0) {
+          const latestEveningDoc = futureEveningDocs[0];
+          const latestEveningData = latestEveningDoc.data() as StockCheck;
+          console.log('最新夕方データ:', latestEveningData);
+          setLatestEveningCheck({ id: latestEveningDoc.id, ...latestEveningData });
         } else {
-          console.log('同じ日の夕方データなし');
-          setSameDayEveningCheck(null);
+          console.log('対象期間の夕方データなし');
+          setLatestEveningCheck(null);
         }
       } else {
         console.log('朝の在庫データが見つかりません');
         setLatestMorningCheck(null);
-        setSameDayEveningCheck(null);
+        setLatestEveningCheck(null);
       }
 
       // 昨日の夕方データも取得（翌日計算用）
@@ -223,8 +235,8 @@ const Dashboard: React.FC = () => {
             if (latestMorningCheck) {
               totalMorningStock += latestMorningCheck.items[groupItem.id] || 0;
             }
-            if (sameDayEveningCheck) {
-              totalTakenHomeToday += sameDayEveningCheck.items[groupItem.id] || 0;
+            if (latestEveningCheck) {
+              totalTakenHomeToday += latestEveningCheck.items[groupItem.id] || 0;
             }
           });
 
@@ -253,8 +265,8 @@ const Dashboard: React.FC = () => {
             morningStock = latestMorningCheck.items[item.id] || 0;
           }
 
-          if (sameDayEveningCheck) {
-            takenHomeSameDay = sameDayEveningCheck.items[item.id] || 0;
+          if (latestEveningCheck) {
+            takenHomeSameDay = latestEveningCheck.items[item.id] || 0;
           }
 
           // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
@@ -293,7 +305,7 @@ const Dashboard: React.FC = () => {
     
     console.log('保育園在庫計算開始（最新ロジック）');
     console.log('最新朝データ:', latestMorningCheck);
-    console.log('同日夕方データ:', sameDayEveningCheck);
+    console.log('最新夕方データ:', latestEveningCheck);
     
     // データ読み込み中はスキップ
     if (!latestMorningCheck) {
@@ -312,15 +324,15 @@ const Dashboard: React.FC = () => {
           morningStock = latestMorningCheck.items[item.id] || 0;
         }
 
-        // 同じ日の夕方の持ち帰り数
-        if (sameDayEveningCheck) {
-          takenHomeSameDay = sameDayEveningCheck.items[item.id] || 0;
+        // 最新朝在庫日付以降の最新夕方の持ち帰り数
+        if (latestEveningCheck) {
+          takenHomeSameDay = latestEveningCheck.items[item.id] || 0;
         }
 
-        console.log(`${item.name}: 最新朝在庫=${morningStock}, 同日持ち帰り=${takenHomeSameDay}`);
-        console.log(`　朝データ日付: ${latestMorningCheck?.date || 'なし'}, 夕方データ日付: ${sameDayEveningCheck?.date || 'なし'}`);
+        console.log(`${item.name}: 最新朝在庫=${morningStock}, 最新夕方持ち帰り=${takenHomeSameDay}`);
+        console.log(`　朝データ日付: ${latestMorningCheck?.date || 'なし'}, 夕方データ日付: ${latestEveningCheck?.date || 'なし'}`);
 
-        // 保育園在庫 = 最新朝の在庫 - 同じ日の夕方持ち帰り数
+        // 保育園在庫 = 最新朝の在庫 - 最新夕方の持ち帰り数
         const currentStock = Math.max(0, morningStock - takenHomeSameDay);
         
         stocks.push({
@@ -478,7 +490,7 @@ const Dashboard: React.FC = () => {
           <span className="btn-icon">🌙</span>
           <div>
             <h3>夕方の記録</h3>
-            <p>{(sameDayEveningCheck && sameDayEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
+            <p>{(latestEveningCheck && latestEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
           </div>
         </button>
       </div>
@@ -530,10 +542,10 @@ const Dashboard: React.FC = () => {
           <EveningCheck 
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
-            existingData={(sameDayEveningCheck && sameDayEveningCheck.date === today) ? {
-              id: sameDayEveningCheck.id!,
-              items: sameDayEveningCheck.items,
-              weeklyItems: sameDayEveningCheck.weeklyItems
+            existingData={(latestEveningCheck && latestEveningCheck.date === today) ? {
+              id: latestEveningCheck.id!,
+              items: latestEveningCheck.items,
+              weeklyItems: latestEveningCheck.weeklyItems
             } : undefined}
           />
         </Layout>
