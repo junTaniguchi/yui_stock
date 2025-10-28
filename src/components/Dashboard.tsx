@@ -16,6 +16,48 @@ import './Dashboard.css';
 
 type ViewType = 'home' | 'morning' | 'evening' | 'settings';
 
+const toSafeDate = (value: any, fallbackDate?: string): Date => {
+  if (value) {
+    if (value instanceof Date) {
+      return value;
+    }
+    if (typeof value.toDate === 'function') {
+      const converted = value.toDate();
+      if (!Number.isNaN(converted.getTime())) {
+        return converted;
+      }
+    }
+    if (typeof value.seconds === 'number') {
+      return new Date(value.seconds * 1000);
+    }
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  if (fallbackDate) {
+    const parsedFallback = new Date(`${fallbackDate}T00:00:00`);
+    if (!Number.isNaN(parsedFallback.getTime())) {
+      return parsedFallback;
+    }
+  }
+
+  return new Date();
+};
+
+const normalizeStockCheckData = (raw: any): StockCheck => {
+  const timestamp = toSafeDate(raw?.timestamp, raw?.date);
+  return {
+    ...raw,
+    timestamp,
+  };
+};
+
+const getTimestampMillis = (check: StockCheck): number => {
+  return check.timestamp ? check.timestamp.getTime() : new Date(`${check.date}T00:00:00`).getTime();
+};
+
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -85,21 +127,21 @@ const Dashboard: React.FC = () => {
       );
       
       const morningSnapshot = await getDocs(morningQuery);
-      
-      // 日付の降順でソートして最新を取得
-      const sortedMorningDocs = morningSnapshot.docs.sort((a, b) => {
-        const aData = a.data();
-        const bData = b.data();
-        return bData.date.localeCompare(aData.date);
+
+      const normalizedMorningDocs = morningSnapshot.docs.map(doc => {
+        const data = normalizeStockCheckData(doc.data());
+        return { id: doc.id, ...data };
       });
+
+      // タイムスタンプの降順でソートして最新を取得
+      const sortedMorningDocs = normalizedMorningDocs.sort((a, b) => getTimestampMillis(b) - getTimestampMillis(a));
       console.log('朝データ全体クエリ結果:', morningSnapshot.size, '件');
       console.log('ソート後の最新朝データ数:', sortedMorningDocs.length, '件');
       
       if (sortedMorningDocs.length > 0) {
-        const morningDoc = sortedMorningDocs[0];
-        const morningData = morningDoc.data() as StockCheck;
+        const morningData = sortedMorningDocs[0];
         console.log('最新の朝データ:', morningData);
-        setLatestMorningCheck({ id: morningDoc.id, ...morningData });
+        setLatestMorningCheck(morningData);
         
         // 最新朝在庫日付以降の最新夕方データを取得
         const eveningQuery = query(
@@ -110,25 +152,24 @@ const Dashboard: React.FC = () => {
         const eveningSnapshot = await getDocs(eveningQuery);
         console.log('夕方データ全体クエリ結果:', eveningSnapshot.size, '件');
         
-        // 最新朝在庫日付以降の夕方データを日付降順でソート
-        const futureEveningDocs = eveningSnapshot.docs
-          .filter(doc => {
-            const data = doc.data() as StockCheck;
-            return data.date >= morningData.date;
-          })
-          .sort((a, b) => {
-            const aData = a.data();
-            const bData = b.data();
-            return bData.date.localeCompare(aData.date);
-          });
+        const normalizedEveningDocs = eveningSnapshot.docs.map(doc => {
+          const data = normalizeStockCheckData(doc.data());
+          return { id: doc.id, ...data };
+        });
+
+        const morningMillis = getTimestampMillis(morningData);
+        
+        // 最新朝在庫以降の夕方データをタイムスタンプ降順でソート
+        const futureEveningDocs = normalizedEveningDocs
+          .filter(doc => getTimestampMillis(doc) >= morningMillis)
+          .sort((a, b) => getTimestampMillis(b) - getTimestampMillis(a));
         
         console.log(`${morningData.date}以降の夕方データ数:`, futureEveningDocs.length, '件');
         
         if (futureEveningDocs.length > 0) {
-          const latestEveningDoc = futureEveningDocs[0];
-          const latestEveningData = latestEveningDoc.data() as StockCheck;
+          const latestEveningData = futureEveningDocs[0];
           console.log('最新夕方データ:', latestEveningData);
-          setLatestEveningCheck({ id: latestEveningDoc.id, ...latestEveningData });
+          setLatestEveningCheck(latestEveningData);
         } else {
           console.log('対象期間の夕方データなし');
           setLatestEveningCheck(null);
@@ -150,7 +191,8 @@ const Dashboard: React.FC = () => {
       const yesterdayEveningSnapshot = await getDocs(yesterdayEveningQuery);
       if (!yesterdayEveningSnapshot.empty) {
         const doc = yesterdayEveningSnapshot.docs[0];
-        setYesterdayEveningCheck({ id: doc.id, ...doc.data() } as StockCheck);
+        const data = normalizeStockCheckData(doc.data());
+        setYesterdayEveningCheck({ id: doc.id, ...data });
       } else {
         setYesterdayEveningCheck(null);
       }
@@ -188,30 +230,19 @@ const Dashboard: React.FC = () => {
       // 過去2週間のデータのみをフィルタして処理
       const twoWeeksAgo = new Date();
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-      const twoWeeksAgoStr = twoWeeksAgo.toISOString().split('T')[0];
+      const thresholdMillis = twoWeeksAgo.getTime();
 
-      // データを日付でフィルタしてから日付順に処理して最新の状態を判断
-      const filteredDocs = querySnapshot.docs
-        .filter(doc => {
-          const data = doc.data() as StockCheck;
-          return data.date >= twoWeeksAgoStr;
-        })
-        .sort((a, b) => {
-          const aData = a.data() as StockCheck;
-          const bData = b.data() as StockCheck;
-          // 日付で降順ソート、同じ日付なら timestamp で降順ソート
-          if (aData.date !== bData.date) {
-            return bData.date.localeCompare(aData.date);
-          }
-          const aTime = aData.timestamp ? 
-            ((aData.timestamp as any).toMillis ? (aData.timestamp as any).toMillis() : (aData.timestamp as Date).getTime()) : 0;
-          const bTime = bData.timestamp ? 
-            ((bData.timestamp as any).toMillis ? (bData.timestamp as any).toMillis() : (bData.timestamp as Date).getTime()) : 0;
-          return bTime - aTime;
-        });
+      const normalizedDocs = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...normalizeStockCheckData(doc.data()),
+      }));
 
-      filteredDocs.forEach(doc => {
-        const data = doc.data() as StockCheck;
+      // データをタイムスタンプでフィルタしてから降順に並べて処理
+      const filteredDocs = normalizedDocs
+        .filter(doc => getTimestampMillis(doc) >= thresholdMillis)
+        .sort((a, b) => getTimestampMillis(b) - getTimestampMillis(a));
+
+      filteredDocs.forEach(data => {
         if (data.weeklyItems) {
           Object.entries(data.weeklyItems).forEach(([itemId, action]) => {
             if (statuses[itemId] && action) {
