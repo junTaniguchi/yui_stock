@@ -1,0 +1,184 @@
+.inventory-settings-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.inventory-settings-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inventory-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.inventory-settings-section h3 {
+  margin-bottom: 0.75rem;
+}
+
+.inventory-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.inventory-settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f7f9fc;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.inventory-settings-item-info {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.inventory-settings-icon {
+  font-size: 1.75rem;
+}
+
+.inventory-settings-item-info h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.inventory-settings-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.inventory-settings-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inventory-settings-control input {
+  width: 80px;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+  background: #fff;
+  text-align: right;
+  font-size: 1rem;
+}
+
+.inventory-settings-control input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.inventory-settings-unit {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.inventory-settings-header h2 {
+  margin: 0;
+}
+
+.inventory-settings-header p {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.inventory-settings-header .back-btn {
+  align-self: flex-start;
+}
+
+.inventory-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.inventory-settings-actions button {
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.inventory-settings-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.back-link-btn {
+  background: transparent;
+  color: #4c1d95;
+  text-decoration: underline;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.back-link-btn:hover:not(:disabled) {
+  color: #312e81;
+  transform: translateY(-1px);
+}
+
+.reset-btn {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.reset-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(148, 163, 184, 0.25);
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.35);
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.4);
+}
+
+.inventory-settings-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+  color: #475569;
+}
+
+.inventory-settings-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid #cbd5f5;
+  border-top-color: #6366f1;
+  animation: inventory-spin 1s linear infinite;
+}
+
+@keyframes inventory-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

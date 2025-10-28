@@ -6,6 +6,11 @@ interface NurseryStockViewProps {
   stocks: NurseryStock[];
 }
 
+const formatNumber = (value: number) => {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+};
+
 const NurseryStockView: React.FC<NurseryStockViewProps> = ({ stocks }) => {
   if (stocks.length === 0) {
     return null;
@@ -16,7 +21,8 @@ const NurseryStockView: React.FC<NurseryStockViewProps> = ({ stocks }) => {
       <h3>🏫 保育園にある在庫</h3>
       <div className="stock-list">
         {stocks.map((stock) => {
-          const stockRatio = stock.currentStock / stock.requiredStock;
+          const hasRequirement = stock.requiredStock > 0;
+          const stockRatio = hasRequirement ? stock.currentStock / stock.requiredStock : 1;
           const statusClass = 
             stockRatio >= 1 ? 'sufficient' :
             stockRatio >= 0.5 ? 'warning' : 'insufficient';
@@ -27,7 +33,12 @@ const NurseryStockView: React.FC<NurseryStockViewProps> = ({ stocks }) => {
               <div className="stock-info">
                 <div className="stock-name">{stock.itemName}</div>
                 <div className="stock-count">
-                  {stock.currentStock} {stock.unit}
+                  {formatNumber(stock.currentStock)} {stock.unit}
+                  {hasRequirement && (
+                    <span className="stock-required">
+                      {' '} / {formatNumber(stock.requiredStock)}{stock.unit}
+                    </span>
+                  )}
                 </div>
                 <div className="stock-progress-bar">
                   <div 

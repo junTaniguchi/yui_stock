@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
@@ -10,9 +10,11 @@ import EveningCheck from './EveningCheck';
 import TomorrowNeeds from './TomorrowNeeds';
 import WeeklyItems from './WeeklyItems';
 import NurseryStockView from './NurseryStockView';
+import InventorySettings from './InventorySettings';
+import { useItemSettings } from '../contexts/ItemSettingsContext';
 import './Dashboard.css';
 
-type ViewType = 'home' | 'morning' | 'evening';
+type ViewType = 'home' | 'morning' | 'evening' | 'settings';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -24,6 +26,7 @@ const Dashboard: React.FC = () => {
   const [weeklyNeeds, setWeeklyNeeds] = useState<WeeklyNeed[]>([]);
   const [weeklyItemStatuses, setWeeklyItemStatuses] = useState<Record<string, WeeklyItemStatus>>({});
   const [nurseryStocks, setNurseryStocks] = useState<NurseryStock[]>([]);
+  const { requiredCounts, loading: settingsLoading } = useItemSettings();
 
   // 日本時闳での日付を取得
   const getJapanDate = (daysOffset: number = 0) => {
@@ -44,11 +47,28 @@ const Dashboard: React.FC = () => {
   }, [currentUser]);
 
   useEffect(() => {
+    if (settingsLoading) return;
     calculateTomorrowNeeds();
     calculateWeeklyNeeds();
     calculateNurseryStocks();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latestMorningCheck, latestEveningCheck, yesterdayEveningCheck, weeklyItemStatuses]);
+  }, [latestMorningCheck, latestEveningCheck, yesterdayEveningCheck, weeklyItemStatuses, requiredCounts, settingsLoading]);
+
+  const getRequiredCount = useCallback((itemId: string): number => {
+    if (requiredCounts[itemId] !== undefined) {
+      return requiredCounts[itemId];
+    }
+    const item = clothingItems.find(i => i.id === itemId);
+    return item ? item.required : 0;
+  }, [requiredCounts]);
+
+  const getGroupRequiredTotal = useCallback((groupId: string): number => {
+    const groupItems = clothingItems.filter(item => item.group === groupId);
+    if (groupItems.length === 0) {
+      return 0;
+    }
+    return groupItems.reduce((total, item) => total + getRequiredCount(item.id), 0);
+  }, [getRequiredCount]);
 
   const loadLatestStockData = async () => {
     console.log('最新在庫データ読み込み開始 - currentUser:', currentUser);
@@ -242,8 +262,8 @@ const Dashboard: React.FC = () => {
 
           // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
           const nurseryStock = Math.max(0, totalMorningStock - totalTakenHomeToday);
-          // 上着の場合: 翌日持っていく在庫 = 3 - SUM(保育園在庫の半袖、保育園在庫の長袖)
-          const needToBring = Math.max(0, 3 - nurseryStock);
+          const requiredTotal = getGroupRequiredTotal(item.group);
+          const needToBring = Math.max(0, requiredTotal - nurseryStock);
 
           if (needToBring > 0) {
             needs.push({
@@ -272,16 +292,8 @@ const Dashboard: React.FC = () => {
           // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
           const nurseryStock = Math.max(0, morningStock - takenHomeSameDay);
           
-          let needToBring = 0;
-          
-          // 肌着、ズボンの場合: 翌日持っていく在庫 = 3 - 保育園在庫
-          if (item.type === 'underwear' || item.type === 'pants') {
-            needToBring = Math.max(0, 3 - nurseryStock);
-          }
-          // その他（連絡帳、ストローマグ、タオル、ビニール袋）の場合: 1
-          else if (item.type === 'contact_book' || item.type === 'straw_mug' || item.type === 'towel' || item.type === 'plastic_bag') {
-            needToBring = 1;
-          }
+          const requiredCount = getRequiredCount(item.id);
+          const needToBring = Math.max(0, requiredCount - nurseryStock);
 
           if (needToBring > 0) {
             needs.push({
@@ -339,7 +351,7 @@ const Dashboard: React.FC = () => {
           itemId: item.id,
           itemName: item.name,
           currentStock,
-          requiredStock: item.required,
+          requiredStock: getRequiredCount(item.id),
           icon: item.icon,
           unit: item.unit
         });
@@ -493,6 +505,18 @@ const Dashboard: React.FC = () => {
             <p>{(latestEveningCheck && latestEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
           </div>
         </button>
+
+        <button
+          onClick={() => setCurrentView('settings')}
+          className="action-btn settings-btn"
+          disabled={settingsLoading}
+        >
+          <span className="btn-icon">⚙️</span>
+          <div>
+            <h3>在庫の設定</h3>
+            <p>必要な枚数をカスタマイズ</p>
+          </div>
+        </button>
       </div>
 
       {nurseryStocks.length > 0 && (
@@ -547,6 +571,16 @@ const Dashboard: React.FC = () => {
               items: latestEveningCheck.items,
               weeklyItems: latestEveningCheck.weeklyItems
             } : undefined}
+          />
+        </Layout>
+      );
+
+    case 'settings':
+      return (
+        <Layout title="在庫の設定">
+          <InventorySettings 
+            onBack={() => setCurrentView('home')}
+            onSaved={() => setCurrentView('home')}
           />
         </Layout>
       );

@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import InstallPrompt from './components/InstallPrompt';
 import { usePWAStyles } from './hooks/usePWA';
+import { ItemSettingsProvider } from './contexts/ItemSettingsContext';
 import './App.css';
 
 function AppContent() {
@@ -33,9 +34,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <div className="App">
-        <AppContent />
-      </div>
+      <ItemSettingsProvider>
+        <div className="App">
+          <AppContent />
+        </div>
+      </ItemSettingsProvider>
     </AuthProvider>
   );
 }

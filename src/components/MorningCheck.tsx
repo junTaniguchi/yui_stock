@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { dailyItems, weeklyItems } from '../config/items';
+import { useItemSettings } from '../contexts/ItemSettingsContext';
 import './Forms.css';
 
 interface MorningCheckProps {
@@ -20,6 +21,7 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [weeklyItemsBrought, setWeeklyItemsBrought] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { requiredCounts } = useItemSettings();
 
   // 日本時間での今日の日付を取得
   const getJapanDate = () => {
@@ -28,6 +30,15 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
     return japanTime.toISOString().split('T')[0];
   };
   // const today = getJapanDate(); // 使用されていないためコメントアウト
+  const formattedRequiredCounts = useMemo(() => {
+    const entries: Record<string, string> = {};
+    dailyItems.forEach(item => {
+      const required = requiredCounts[item.id] ?? item.required;
+      const rounded = Math.round(required * 10) / 10;
+      entries[item.id] = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    });
+    return entries;
+  }, [requiredCounts]);
 
   useEffect(() => {
     if (existingData) {
@@ -107,13 +118,21 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
 
       <form onSubmit={handleSubmit} className="stock-form">
         <div className="items-grid">
-          {dailyItems.map(item => (
+          {dailyItems.map(item => {
+            const requiredValue = requiredCounts[item.id] ?? item.required;
+            const shortageValue = Math.max(0, requiredValue - (counts[item.id] || 0));
+            const roundedShortage = Math.round(shortageValue * 10) / 10;
+            const shortageDisplay = Number.isInteger(roundedShortage)
+              ? String(roundedShortage)
+              : roundedShortage.toFixed(1);
+
+            return (
             <div key={item.id} className="item-card">
               <div className="item-info">
                 <span className="item-icon">{item.icon}</span>
                 <div>
                   <h3>{item.name}</h3>
-                  <p>必要数: {item.required}枚</p>
+                  <p>必要数: {formattedRequiredCounts[item.id]}{item.unit}</p>
                 </div>
               </div>
               
@@ -147,13 +166,14 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
                 </button>
               </div>
               
-              {counts[item.id] !== undefined && counts[item.id] < item.required && (
+              {counts[item.id] !== undefined && (counts[item.id] || 0) < requiredValue && (
                 <div className="shortage-warning">
-                  ⚠️ {item.required - counts[item.id]}枚不足
+                  ⚠️ {shortageDisplay}{item.unit}不足
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {weeklyItems.length > 0 && (
