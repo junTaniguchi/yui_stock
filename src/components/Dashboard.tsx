@@ -58,6 +58,27 @@ const getTimestampMillis = (check: StockCheck): number => {
   return check.timestamp ? check.timestamp.getTime() : new Date(`${check.date}T00:00:00`).getTime();
 };
 
+const formatCheckTimestamp = (check: StockCheck | null): string | null => {
+  if (!check || !check.timestamp) {
+    return null;
+  }
+
+  try {
+    const formatter = new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return formatter.format(check.timestamp);
+  } catch (error) {
+    console.error('タイムスタンプのフォーマットに失敗しました:', error);
+    return null;
+  }
+};
+
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -507,9 +528,15 @@ const Dashboard: React.FC = () => {
     return hasAnyDailyInput;
   };
 
-  const renderHomeView = () => (
-    <div className="dashboard-home">
-      <div className="welcome-section">
+  const renderHomeView = () => {
+    const morningCompleted = isMorningCheckComplete();
+    const eveningCompleted = latestEveningCheck?.date === today;
+    const morningTimestampText = morningCompleted ? formatCheckTimestamp(latestMorningCheck) : null;
+    const eveningTimestampText = eveningCompleted ? formatCheckTimestamp(latestEveningCheck) : null;
+
+    return (
+      <div className="dashboard-home">
+        <div className="welcome-section">
         <h2>こんにちは！今日も一日お疲れ様 💕</h2>
         <p>保育園の準備はバッチリですか？</p>
       </div>
@@ -520,9 +547,12 @@ const Dashboard: React.FC = () => {
           className="action-btn morning-btn"
         >
           <span className="btn-icon">🌅</span>
-          <div>
+          <div className="action-btn-text">
             <h3>朝の在庫確認</h3>
             <p>{isMorningCheckComplete() ? '✅ 完了済み（再編集可能）' : '保育園の在庫をチェック'}</p>
+            {morningTimestampText && (
+              <span className="timestamp-label">🕒 記録: {morningTimestampText}</span>
+            )}
           </div>
         </button>
 
@@ -531,9 +561,12 @@ const Dashboard: React.FC = () => {
           className="action-btn evening-btn"
         >
           <span className="btn-icon">🌙</span>
-          <div>
+          <div className="action-btn-text">
             <h3>夕方の記録</h3>
             <p>{(latestEveningCheck && latestEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
+            {eveningTimestampText && (
+              <span className="timestamp-label">🕒 記録: {eveningTimestampText}</span>
+            )}
           </div>
         </button>
 
@@ -567,7 +600,8 @@ const Dashboard: React.FC = () => {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   const handleDataUpdate = () => {
     loadLatestStockData();

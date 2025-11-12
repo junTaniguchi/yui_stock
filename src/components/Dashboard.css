@@ -85,6 +85,20 @@
   margin: 0;
 }
 
+.action-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.timestamp-label {
+  font-size: 0.8rem;
+  color: #95a5a6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
 .tomorrow-preview,
 .weekly-preview {
   background: white;
