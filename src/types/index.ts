@@ -1,7 +1,7 @@
 export interface ClothingItem {
   id: string;
   name: string;
-  type: 'underwear' | 'short_sleeve' | 'long_sleeve' | 'pants' | 'towel' | 'swimsuit' | 'bed_cover' | 'pillow_towel' | 'contact_book' | 'straw_mug' | 'plastic_bag';
+  type: 'underwear' | 'short_sleeve' | 'long_sleeve' | 'pants' | 'towel' | 'swimsuit' | 'jumper' | 'bed_cover' | 'pillow_towel' | 'contact_book' | 'straw_mug' | 'plastic_bag';
   required: number; // 必要な在庫数
   schedule?: 'daily' | 'weekly_monday' | 'weekly_friday'; // スケジュールタイプ
   icon: string; // アイコン（絵文字）

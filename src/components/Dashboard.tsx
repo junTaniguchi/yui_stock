@@ -424,14 +424,14 @@ const Dashboard: React.FC = () => {
       if (!status) return;
 
       if (item.schedule === 'weekly_monday') {
-        // 水着: 明日が月曜日で家にある状態なら持参を提案
+        // 週次（月曜日）アイテム: 明日が月曜日で家にある状態なら持参を提案
         if (tomorrowDayOfWeek === 1 && status.currentStatus === 'at_home') {
           needs.push({
             itemId: item.id,
             itemName: item.name,
             dayOfWeek: 'monday',
             action: 'bring',
-            description: '明日は月曜日！新しい水着を持参（金曜日まで保育園で保管）',
+            description: `明日は月曜日！新しい${item.name}を持参（金曜日まで保育園で保管）`,
             icon: item.icon,
             isChecked: false,
           });
@@ -439,11 +439,11 @@ const Dashboard: React.FC = () => {
         // 保育園にある状態で金曜日なら持ち帰りを提案
         else if (status.currentStatus === 'at_nursery' && tomorrowDayOfWeek === 5) {
           needs.push({
-            itemId: 'swimsuit_return',
+            itemId: `${item.id}_return`,
             itemName: item.name,
             dayOfWeek: 'friday',
             action: 'take_home',
-            description: '今週使った水着を持ち帰り',
+            description: `今週使った${item.name}を持ち帰り`,
             icon: item.icon,
             isChecked: false,
           });
@@ -471,7 +471,7 @@ const Dashboard: React.FC = () => {
       const status = weeklyItemStatuses[item.id];
       if (!status) return;
 
-      // 今週まだ持参していない水着があれば平日（月曜日以外）に提案
+      // 今週まだ持参していない週次（月曜日）アイテムがあれば平日（月曜日以外）に提案
       if (item.schedule === 'weekly_monday' && 
           status.currentStatus === 'at_home' &&
           tomorrowDayOfWeek >= 2 && tomorrowDayOfWeek <= 5) { // 火曜日から金曜日
@@ -487,7 +487,7 @@ const Dashboard: React.FC = () => {
               itemName: item.name,
               dayOfWeek: 'monday',
               action: 'bring',
-              description: '今週まだ持参していない水着（いつでも持参可能）',
+              description: `今週まだ持参していない${item.name}（いつでも持参可能）`,
               icon: item.icon,
               isChecked: false,
             });

@@ -91,6 +91,15 @@ export const clothingItems: ClothingItem[] = [
     unit: '枚',
   },
   {
+    id: 'jumper',
+    name: 'ジャンパー',
+    type: 'jumper',
+    required: 1,
+    schedule: 'weekly_monday',
+    icon: '🧥',
+    unit: '着',
+  },
+  {
     id: 'bed_cover',
     name: '敷布団カバー',
     type: 'bed_cover',
@@ -117,5 +126,5 @@ export const dailyItems = clothingItems.filter(item =>
 
 // 週次アイテム
 export const weeklyItems = clothingItems.filter(item => 
-  ['swimsuit', 'bed_cover', 'pillow_towel'].includes(item.id)
+  ['swimsuit', 'jumper', 'bed_cover', 'pillow_towel'].includes(item.id)
 );
