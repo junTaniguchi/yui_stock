@@ -1,7 +1,7 @@
 export interface ClothingItem {
   id: string;
   name: string;
-  type: 'backpack' | 'hat' | 'cup' | 'water_bottle' | 'loop_towel' | 'ic_tag' | 'bento' | 'utensils' | 'long_sleeve' | 'short_sleeve' | 'underwear' | 'pants' | 'plastic_bag' | 'shoes' | 'slippers' | 'security_card' | 'ic_card';
+  type: 'hat' | 'cup' | 'water_bottle' | 'loop_towel' | 'bento' | 'utensils' | 'long_sleeve' | 'short_sleeve' | 'underwear' | 'pants' | 'plastic_bag' | 'shoes' | 'slippers' | 'security_card' | 'ic_card';
   required: number; // 必要な在庫数
   schedule?: 'daily' | 'weekly_monday' | 'weekly_friday'; // スケジュールタイプ
   icon: string; // アイコン（絵文字）
@@ -28,6 +28,7 @@ export interface DailyNeed {
   icon: string;
   unit: string;
   isChecked?: boolean;
+  group?: string;
 }
 
 export interface WeeklyNeed {
@@ -56,4 +57,5 @@ export interface NurseryStock {
   unit: string;
   isGrouped?: boolean;
   groupName?: string;
+  group?: string;
 }

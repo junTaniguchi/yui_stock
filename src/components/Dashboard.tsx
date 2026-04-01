@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
   // 日本時闳での日付を取得
   const getJapanDate = (daysOffset: number = 0) => {
     const now = new Date();
-    const japanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+    const japanTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
     japanTime.setDate(japanTime.getDate() + daysOffset);
     return japanTime.toISOString().split('T')[0];
   };
@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
         collection(db, 'stockChecks'),
         where('type', '==', 'morning')
       );
-      
+
       const morningSnapshot = await getDocs(morningQuery);
 
       const normalizedMorningDocs = morningSnapshot.docs.map(doc => {
@@ -158,35 +158,35 @@ const Dashboard: React.FC = () => {
       const sortedMorningDocs = normalizedMorningDocs.sort((a, b) => getTimestampMillis(b) - getTimestampMillis(a));
       console.log('朝データ全体クエリ結果:', morningSnapshot.size, '件');
       console.log('ソート後の最新朝データ数:', sortedMorningDocs.length, '件');
-      
+
       if (sortedMorningDocs.length > 0) {
         const morningData = sortedMorningDocs[0];
         console.log('最新の朝データ:', morningData);
         setLatestMorningCheck(morningData);
-        
+
         // 最新朝在庫日付以降の最新夕方データを取得
         const eveningQuery = query(
           collection(db, 'stockChecks'),
           where('type', '==', 'evening')
         );
-        
+
         const eveningSnapshot = await getDocs(eveningQuery);
         console.log('夕方データ全体クエリ結果:', eveningSnapshot.size, '件');
-        
+
         const normalizedEveningDocs = eveningSnapshot.docs.map(doc => {
           const data = normalizeStockCheckData(doc.data());
           return { id: doc.id, ...data };
         });
 
         const morningMillis = getTimestampMillis(morningData);
-        
+
         // 最新朝在庫以降の夕方データをタイムスタンプ降順でソート
         const futureEveningDocs = normalizedEveningDocs
           .filter(doc => getTimestampMillis(doc) >= morningMillis)
           .sort((a, b) => getTimestampMillis(b) - getTimestampMillis(a));
-        
+
         console.log(`${morningData.date}以降の夕方データ数:`, futureEveningDocs.length, '件');
-        
+
         if (futureEveningDocs.length > 0) {
           const latestEveningData = futureEveningDocs[0];
           console.log('最新夕方データ:', latestEveningData);
@@ -208,7 +208,7 @@ const Dashboard: React.FC = () => {
         where('type', '==', 'evening'),
         limit(1)
       );
-      
+
       const yesterdayEveningSnapshot = await getDocs(yesterdayEveningQuery);
       if (!yesterdayEveningSnapshot.empty) {
         const doc = yesterdayEveningSnapshot.docs[0];
@@ -217,7 +217,7 @@ const Dashboard: React.FC = () => {
       } else {
         setYesterdayEveningCheck(null);
       }
-      
+
     } catch (error) {
       console.error('データ読み込みエラー:', error);
       console.error('エラー詳細:', {
@@ -289,74 +289,37 @@ const Dashboard: React.FC = () => {
 
   const calculateTomorrowNeeds = () => {
     const needs: DailyNeed[] = [];
-    const processedGroups = new Set<string>();
-    
+
     clothingItems.forEach(item => {
       // 日常アイテムのみ対象
       if (item.schedule === 'daily') {
-        // グループアイテムの場合（上着）
-        if (item.group && item.groupRequired && !processedGroups.has(item.group)) {
-          processedGroups.add(item.group);
-          
-          // グループの全アイテムを取得
-          const groupItems = clothingItems.filter(i => i.group === item.group);
-          let totalMorningStock = 0;
-          let totalTakenHomeToday = 0;
+        let morningStock = 0;
+        let takenHomeSameDay = 0;
 
-          groupItems.forEach(groupItem => {
-            if (latestMorningCheck) {
-              totalMorningStock += latestMorningCheck.items[groupItem.id] || 0;
-            }
-            if (latestEveningCheck) {
-              totalTakenHomeToday += latestEveningCheck.items[groupItem.id] || 0;
-            }
-          });
-
-          // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
-          const nurseryStock = Math.max(0, totalMorningStock - totalTakenHomeToday);
-          const requiredTotal = getGroupRequiredTotal(item.group);
-          const needToBring = Math.max(0, requiredTotal - nurseryStock);
-
-          if (needToBring > 0) {
-            needs.push({
-              itemId: item.group,
-              itemName: `上着（半袖・長袖）`,
-              needToBring: Math.ceil(needToBring),
-              icon: '👔',
-              unit: item.unit,
-              isChecked: false,
-            });
-          }
+        if (latestMorningCheck) {
+          morningStock = latestMorningCheck.items[item.id] || 0;
         }
-        // 単独アイテムの場合
-        else if (!item.group) {
-          let morningStock = 0;
-          let takenHomeSameDay = 0;
 
-          if (latestMorningCheck) {
-            morningStock = latestMorningCheck.items[item.id] || 0;
-          }
+        if (latestEveningCheck) {
+          takenHomeSameDay = latestEveningCheck.items[item.id] || 0;
+        }
 
-          if (latestEveningCheck) {
-            takenHomeSameDay = latestEveningCheck.items[item.id] || 0;
-          }
+        // 幼稚園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
+        const nurseryStock = Math.max(0, morningStock - takenHomeSameDay);
 
-          // 保育園在庫 = 最新朝の在庫 - 同日夕方持ち帰り数
-          const nurseryStock = Math.max(0, morningStock - takenHomeSameDay);
-          
-          const requiredCount = getRequiredCount(item.id);
-          const needToBring = Math.max(0, requiredCount - nurseryStock);
+        const requiredCount = getRequiredCount(item.id);
+        const needToBring = Math.max(0, requiredCount - nurseryStock);
 
-          if (needToBring > 0) {
-            needs.push({
-              itemId: item.id,
-              itemName: item.name,
-              needToBring: Math.ceil(needToBring),
-              icon: item.icon,
-              unit: item.unit,
-              isChecked: false,
-            });
-          }
+        if (needToBring > 0) {
+          needs.push({
+            itemId: item.id,
+            itemName: item.name,
+            needToBring: Math.ceil(needToBring),
+            icon: item.icon,
+            unit: item.unit,
+            isChecked: false,
+            group: item.group,
+          });
         }
       }
     });
@@ -366,20 +329,20 @@ const Dashboard: React.FC = () => {
 
   const calculateNurseryStocks = () => {
     const stocks: NurseryStock[] = [];
-    
-    console.log('保育園在庫計算開始（最新ロジック）');
+
+    console.log('幼稚園在庫計算開始（最新ロジック）');
     console.log('最新朝データ:', latestMorningCheck);
     console.log('最新夕方データ:', latestEveningCheck);
-    
+
     // データ読み込み中はスキップ
     if (!latestMorningCheck) {
       console.log('朝データ未読み込みのため在庫計算スキップ');
       setNurseryStocks([]);
       return;
     }
-    
+
     clothingItems.forEach(item => {
-      if (item.schedule === 'daily') {
+      if (item.schedule === 'daily' && item.group === 'stock') {
         let morningStock = 0;
         let takenHomeSameDay = 0;
 
@@ -396,16 +359,17 @@ const Dashboard: React.FC = () => {
         console.log(`${item.name}: 最新朝在庫=${morningStock}, 最新夕方持ち帰り=${takenHomeSameDay}`);
         console.log(`　朝データ日付: ${latestMorningCheck?.date || 'なし'}, 夕方データ日付: ${latestEveningCheck?.date || 'なし'}`);
 
-        // 保育園在庫 = 最新朝の在庫 - 最新夕方の持ち帰り数
+        // 幼稚園在庫 = 最新朝の在庫 - 最新夕方の持ち帰り数
         const currentStock = Math.max(0, morningStock - takenHomeSameDay);
-        
+
         stocks.push({
           itemId: item.id,
           itemName: item.name,
           currentStock,
           requiredStock: getRequiredCount(item.id),
           icon: item.icon,
-          unit: item.unit
+          unit: item.unit,
+          group: item.group
         });
       }
     });
@@ -431,12 +395,12 @@ const Dashboard: React.FC = () => {
             itemName: item.name,
             dayOfWeek: 'monday',
             action: 'bring',
-            description: `明日は月曜日！新しい${item.name}を持参（金曜日まで保育園で保管）`,
+            description: `明日は月曜日！新しい${item.name}を持参（金曜日まで幼稚園で保管）`,
             icon: item.icon,
             isChecked: false,
           });
         }
-        // 保育園にある状態で金曜日なら持ち帰りを提案
+        // 幼稚園にある状態で金曜日なら持ち帰りを提案
         else if (status.currentStatus === 'at_nursery' && tomorrowDayOfWeek === 5) {
           needs.push({
             itemId: `${item.id}_return`,
@@ -466,19 +430,19 @@ const Dashboard: React.FC = () => {
 
     // 特別な週単位提案ロジック
     const currentWeek = getWeekNumber(tomorrow);
-    
+
     weeklyItems.forEach(item => {
       const status = weeklyItemStatuses[item.id];
       if (!status) return;
 
       // 今週まだ持参していない週次（月曜日）アイテムがあれば平日（月曜日以外）に提案
-      if (item.schedule === 'weekly_monday' && 
-          status.currentStatus === 'at_home' &&
-          tomorrowDayOfWeek >= 2 && tomorrowDayOfWeek <= 5) { // 火曜日から金曜日
-        
-        const lastBroughtWeek = status.lastBroughtDate ? 
+      if (item.schedule === 'weekly_monday' &&
+        status.currentStatus === 'at_home' &&
+        tomorrowDayOfWeek >= 2 && tomorrowDayOfWeek <= 5) { // 火曜日から金曜日
+
+        const lastBroughtWeek = status.lastBroughtDate ?
           getWeekNumber(new Date(status.lastBroughtDate + 'T00:00:00')) : 0;
-        
+
         if (lastBroughtWeek < currentWeek) {
           const existingNeed = needs.find(n => n.itemId === item.id);
           if (!existingNeed) {
@@ -511,20 +475,20 @@ const Dashboard: React.FC = () => {
     if (!latestMorningCheck) {
       return false;
     }
-    
+
     // 今日の日付かどうかを確認
     const today = getJapanDate();
-    
+
     if (latestMorningCheck.date !== today) {
       return false;
     }
-    
+
     // 日常アイテムが1つでも入力されているかチェック
     const hasAnyDailyInput = dailyItems.some(item => {
       const count = latestMorningCheck.items[item.id] || 0;
       return count > 0;
     });
-    
+
     return hasAnyDailyInput;
   };
 
@@ -537,69 +501,89 @@ const Dashboard: React.FC = () => {
     return (
       <div className="dashboard-home">
         <div className="welcome-section">
-        <h2>こんにちは！今日も一日お疲れ様 💕</h2>
-        <p>保育園の準備はバッチリですか？</p>
-      </div>
-
-      <div className="action-buttons">
-        <button
-          onClick={() => setCurrentView('morning')}
-          className="action-btn morning-btn"
-        >
-          <span className="btn-icon">🌅</span>
-          <div className="action-btn-text">
-            <h3>朝の在庫確認</h3>
-            <p>{isMorningCheckComplete() ? '✅ 完了済み（再編集可能）' : '保育園の在庫をチェック'}</p>
-            {morningTimestampText && (
-              <span className="timestamp-label">🕒 記録: {morningTimestampText}</span>
-            )}
-          </div>
-        </button>
-
-        <button
-          onClick={() => setCurrentView('evening')}
-          className="action-btn evening-btn"
-        >
-          <span className="btn-icon">🌙</span>
-          <div className="action-btn-text">
-            <h3>夕方の記録</h3>
-            <p>{(latestEveningCheck && latestEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
-            {eveningTimestampText && (
-              <span className="timestamp-label">🕒 記録: {eveningTimestampText}</span>
-            )}
-          </div>
-        </button>
-
-        <button
-          onClick={() => setCurrentView('settings')}
-          className="action-btn settings-btn"
-          disabled={settingsLoading}
-        >
-          <span className="btn-icon">⚙️</span>
-          <div>
-            <h3>在庫の設定</h3>
-            <p>必要な枚数をカスタマイズ</p>
-          </div>
-        </button>
-      </div>
-
-      {nurseryStocks.length > 0 && (
-        <NurseryStockView stocks={nurseryStocks} />
-      )}
-
-      {tomorrowNeeds.length > 0 && (
-        <div className="tomorrow-preview">
-          <h3>📝 明日持参するもの</h3>
-          <TomorrowNeeds needs={tomorrowNeeds} />
+          <h2>こんにちは！今日も一日お疲れ様 💕</h2>
+          <p>幼稚園の準備はバッチリですか？</p>
         </div>
-      )}
 
-      {weeklyNeeds.length > 0 && (
-        <div className="weekly-preview">
-          <WeeklyItems needs={weeklyNeeds} />
+        <div className="info-panel" style={{
+          backgroundColor: '#fff9e6',
+          border: '1px solid #ffe082',
+          borderRadius: '12px',
+          padding: '15px',
+          margin: '0 0 20px 0',
+          fontSize: '0.9rem',
+          color: '#5d4037',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span>📢</span> 大切なお知らせ
+          </h3>
+          <ul style={{ margin: 0, paddingLeft: '22px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <li>勤怠連絡は<strong>「出欠申請なび」</strong>で8:00までに申請</li>
+            <li>子どもの体調報告は<strong>「ぎゅっとなび」</strong>で8:30までに申請</li>
+            <li>預かり保育の最終締め切り(翌日の送り迎えの時刻)は<strong>「出欠申請なび」</strong>で前日の15時までに申請</li>
+          </ul>
         </div>
-      )}
-    </div>
+
+        <div className="action-buttons">
+          <button
+            onClick={() => setCurrentView('morning')}
+            className="action-btn morning-btn"
+          >
+            <span className="btn-icon">🌅</span>
+            <div className="action-btn-text">
+              <h3>朝の在庫確認</h3>
+              <p>{isMorningCheckComplete() ? '✅ 完了済み（再編集可能）' : '幼稚園の在庫をチェック'}</p>
+              {morningTimestampText && (
+                <span className="timestamp-label">🕒 記録: {morningTimestampText}</span>
+              )}
+            </div>
+          </button>
+
+          <button
+            onClick={() => setCurrentView('evening')}
+            className="action-btn evening-btn"
+          >
+            <span className="btn-icon">🌙</span>
+            <div className="action-btn-text">
+              <h3>夕方の記録</h3>
+              <p>{(latestEveningCheck && latestEveningCheck.date === today) ? '✅ 完了済み（再編集可能）' : '使った枚数を記録'}</p>
+              {eveningTimestampText && (
+                <span className="timestamp-label">🕒 記録: {eveningTimestampText}</span>
+              )}
+            </div>
+          </button>
+
+          <button
+            onClick={() => setCurrentView('settings')}
+            className="action-btn settings-btn"
+            disabled={settingsLoading}
+          >
+            <span className="btn-icon">⚙️</span>
+            <div>
+              <h3>在庫の設定</h3>
+              <p>必要な枚数をカスタマイズ</p>
+            </div>
+          </button>
+        </div>
+
+        {nurseryStocks.length > 0 && (
+          <NurseryStockView stocks={nurseryStocks} />
+        )}
+
+        {tomorrowNeeds.length > 0 && (
+          <div className="tomorrow-preview">
+            <h3>📝 明日持参するもの</h3>
+            <TomorrowNeeds needs={tomorrowNeeds} />
+          </div>
+        )}
+
+        {weeklyNeeds.length > 0 && (
+          <div className="weekly-preview">
+            <WeeklyItems needs={weeklyNeeds} />
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -613,7 +597,7 @@ const Dashboard: React.FC = () => {
     case 'morning':
       return (
         <Layout title="朝の在庫確認">
-          <MorningCheck 
+          <MorningCheck
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
             existingData={(latestMorningCheck && latestMorningCheck.date === today) ? {
@@ -624,11 +608,11 @@ const Dashboard: React.FC = () => {
           />
         </Layout>
       );
-    
+
     case 'evening':
       return (
         <Layout title="夕方の記録">
-          <EveningCheck 
+          <EveningCheck
             onComplete={handleDataUpdate}
             onBack={() => setCurrentView('home')}
             existingData={(latestEveningCheck && latestEveningCheck.date === today) ? {
@@ -643,16 +627,16 @@ const Dashboard: React.FC = () => {
     case 'settings':
       return (
         <Layout title="在庫の設定">
-          <InventorySettings 
+          <InventorySettings
             onBack={() => setCurrentView('home')}
             onSaved={() => setCurrentView('home')}
           />
         </Layout>
       );
-    
+
     default:
       return (
-        <Layout title="ゆいちゃんの保育園準備">
+        <Layout title="ゆいちゃんの幼稚園準備">
           {renderHomeView()}
         </Layout>
       );

@@ -106,6 +106,63 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
     }
   };
 
+  const renderItemCard = (item: typeof dailyItems[0]) => {
+    const requiredValue = requiredCounts[item.id] ?? item.required;
+    const shortageValue = Math.max(0, requiredValue - (counts[item.id] || 0));
+    const roundedShortage = Math.round(shortageValue * 10) / 10;
+    const shortageDisplay = Number.isInteger(roundedShortage)
+      ? String(roundedShortage)
+      : roundedShortage.toFixed(1);
+
+    return (
+      <div key={item.id} className="item-card">
+        <div className="item-info">
+          <span className="item-icon">{item.icon}</span>
+          <div>
+            <h3>{item.name}</h3>
+            <p>必要数: {formattedRequiredCounts[item.id]}{item.unit}</p>
+          </div>
+        </div>
+
+        <div className="counter">
+          <button
+            type="button"
+            onClick={() => handleCountChange(item.id, (counts[item.id] || 0) - 1)}
+            className="counter-btn minus"
+            disabled={isSubmitting}
+          >
+            -
+          </button>
+
+          <input
+            type="number"
+            min="0"
+            max={item.takesHomeDaily ? 1 : undefined}
+            value={counts[item.id] || 0}
+            onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
+            className="counter-input"
+            disabled={isSubmitting}
+          />
+
+          <button
+            type="button"
+            onClick={() => handleCountChange(item.id, (counts[item.id] || 0) + 1)}
+            className="counter-btn plus"
+            disabled={isSubmitting || (item.takesHomeDaily && (counts[item.id] || 0) >= 1)}
+          >
+            +
+          </button>
+        </div>
+
+        {counts[item.id] !== undefined && (counts[item.id] || 0) < requiredValue && (
+          <div className="shortage-warning">
+            ⚠️ {shortageDisplay}{item.unit}不足
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="form-container">
       <div className="form-header">
@@ -113,67 +170,22 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
           ← 戻る
         </button>
         <h2>🌅 朝の在庫確認</h2>
-        <p>{existingData ? '保育園にある着替えの枚数を更新してください' : '保育園にある着替えの枚数をチェックしてください'}</p>
+        <p>{existingData ? '幼稚園にある着替えの枚数を更新してください' : '幼稚園にある着替えの枚数をチェックしてください'}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="stock-form">
-        <div className="items-grid">
-          {dailyItems.map(item => {
-            const requiredValue = requiredCounts[item.id] ?? item.required;
-            const shortageValue = Math.max(0, requiredValue - (counts[item.id] || 0));
-            const roundedShortage = Math.round(shortageValue * 10) / 10;
-            const shortageDisplay = Number.isInteger(roundedShortage)
-              ? String(roundedShortage)
-              : roundedShortage.toFixed(1);
+        <div className="items-section">
+          <h3 style={{ marginBottom: '15px' }}>🎒 毎日持っていくものなど</h3>
+          <div className="items-grid">
+            {dailyItems.filter(item => item.group === 'daily_check').map(renderItemCard)}
+          </div>
+        </div>
 
-            return (
-              <div key={item.id} className="item-card">
-                <div className="item-info">
-                  <span className="item-icon">{item.icon}</span>
-                  <div>
-                    <h3>{item.name}</h3>
-                    <p>必要数: {formattedRequiredCounts[item.id]}{item.unit}</p>
-                  </div>
-                </div>
-
-                <div className="counter">
-                  <button
-                    type="button"
-                    onClick={() => handleCountChange(item.id, (counts[item.id] || 0) - 1)}
-                    className="counter-btn minus"
-                    disabled={isSubmitting}
-                  >
-                    -
-                  </button>
-
-                  <input
-                    type="number"
-                    min="0"
-                    max={item.takesHomeDaily ? 1 : undefined}
-                    value={counts[item.id] || 0}
-                    onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
-                    className="counter-input"
-                    disabled={isSubmitting}
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => handleCountChange(item.id, (counts[item.id] || 0) + 1)}
-                    className="counter-btn plus"
-                    disabled={isSubmitting || (item.takesHomeDaily && (counts[item.id] || 0) >= 1)}
-                  >
-                    +
-                  </button>
-                </div>
-
-                {counts[item.id] !== undefined && (counts[item.id] || 0) < requiredValue && (
-                  <div className="shortage-warning">
-                    ⚠️ {shortageDisplay}{item.unit}不足
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <div className="items-section" style={{ marginTop: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>👕 ロッカー保管</h3>
+          <div className="items-grid">
+            {dailyItems.filter(item => item.group === 'stock').map(renderItemCard)}
+          </div>
         </div>
 
         {weeklyItems.length > 0 && (

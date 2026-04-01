@@ -1,7 +1,7 @@
 {
-  "short_name": "ゆいちゃんの保育園準備",
-  "name": "ゆいちゃんの保育園準備アプリ",
-  "description": "保育園の持ち物管理を効率化するPWAアプリ。週単位アイテムの状態管理とチェック機能で準備をサポート",
+  "short_name": "ゆいちゃんの幼稚園準備",
+  "name": "ゆいちゃんの幼稚園準備アプリ",
+  "description": "幼稚園の持ち物管理を効率化するPWAアプリ。週単位アイテムの状態管理とチェック機能で準備をサポート",
   "icons": [
     {
       "src": "favicon.ico",
@@ -36,27 +36,44 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait-primary",
   "theme_color": "#fd79a8",
   "background_color": "#ffeaa7",
   "lang": "ja",
   "dir": "ltr",
-  "categories": ["lifestyle", "productivity", "education"],
+  "categories": [
+    "lifestyle",
+    "productivity",
+    "education"
+  ],
   "shortcuts": [
     {
       "name": "朝の確認",
       "short_name": "朝チェック",
-      "description": "保育園の在庫確認を開始",
+      "description": "幼稚園の在庫確認を開始",
       "url": "/morning",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "夕方の記録",
       "short_name": "夕方記録",
       "description": "使用枚数の記録を開始",
       "url": "/evening",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "logo192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "screenshots": [

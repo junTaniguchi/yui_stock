@@ -26,7 +26,7 @@ const TomorrowNeeds: React.FC<TomorrowNeedsProps> = ({ needs }) => {
   const handleCheck = (itemId: string) => {
     console.log('handleCheck called with itemId:', itemId);
     console.log('Current checkedItems:', checkedItems);
-    
+
     setCheckedItems(prev => {
       const newState = {
         ...prev,
@@ -64,39 +64,102 @@ const TomorrowNeeds: React.FC<TomorrowNeedsProps> = ({ needs }) => {
           カバンに入れた: {checkedCount}/{totalCount}
         </div>
         <div className="progress-bar">
-          <div 
-            className="progress-fill" 
+          <div
+            className="progress-fill"
             style={{ width: `${(checkedCount / totalCount) * 100}%` }}
           />
         </div>
       </div>
 
       <div className="needs-list">
-        {needs.map((need) => (
-          <div 
-            key={need.itemId} 
-            className={`need-item ${checkedItems[need.itemId] ? 'checked' : ''}`}
-            onClick={(e) => handleInteraction(e, need.itemId)}
-            onTouchEnd={(e) => handleInteraction(e, need.itemId)}
-            style={{ 
-              cursor: 'pointer',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
-            <div className="need-checkbox">
-              {checkedItems[need.itemId] ? '✅' : '⭕'}
-            </div>
-            <div className="need-icon">{need.icon}</div>
-            <div className="need-info">
-              <span className="need-name">{need.itemName}</span>
-              <span className="need-count">{need.needToBring}{need.unit}</span>
-            </div>
-          </div>
-        ))}
+        {needs.filter(n => n.group === 'parent_check').length > 0 && (
+          <>
+            <h4 style={{ margin: '15px 0 10px', fontSize: '1rem', color: '#555' }}>👨‍👩‍👧 保護者の持ち物</h4>
+            {needs.filter(n => n.group === 'parent_check').map((need) => (
+              <div
+                key={need.itemId}
+                className={`need-item ${checkedItems[need.itemId] ? 'checked' : ''}`}
+                onClick={(e) => handleInteraction(e, need.itemId)}
+                onTouchEnd={(e) => handleInteraction(e, need.itemId)}
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              >
+                <div className="need-checkbox">
+                  {checkedItems[need.itemId] ? '✅' : '⭕'}
+                </div>
+                <div className="need-icon">{need.icon}</div>
+                <div className="need-info">
+                  <span className="need-name">{need.itemName}</span>
+                  <span className="need-count">{need.needToBring}{need.unit}</span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {needs.filter(n => n.group === 'daily_check').length > 0 && (
+          <>
+            <h4 style={{ margin: '15px 0 10px', fontSize: '1rem', color: '#555' }}>🎒 毎日持っていくものなど</h4>
+            {needs.filter(n => n.group === 'daily_check').map((need) => (
+              <div
+                key={need.itemId}
+                className={`need-item ${checkedItems[need.itemId] ? 'checked' : ''}`}
+                onClick={(e) => handleInteraction(e, need.itemId)}
+                onTouchEnd={(e) => handleInteraction(e, need.itemId)}
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              >
+                <div className="need-checkbox">
+                  {checkedItems[need.itemId] ? '✅' : '⭕'}
+                </div>
+                <div className="need-icon">{need.icon}</div>
+                <div className="need-info">
+                  <span className="need-name">{need.itemName}</span>
+                  <span className="need-count">{need.needToBring}{need.unit}</span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {needs.filter(n => n.group === 'stock').length > 0 && (
+          <>
+            <h4 style={{ margin: '15px 0 10px', fontSize: '1rem', color: '#555' }}>👕 ロッカー保管（不足分）</h4>
+            {needs.filter(n => n.group === 'stock').map((need) => (
+              <div
+                key={need.itemId}
+                className={`need-item ${checkedItems[need.itemId] ? 'checked' : ''}`}
+                onClick={(e) => handleInteraction(e, need.itemId)}
+                onTouchEnd={(e) => handleInteraction(e, need.itemId)}
+                style={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTapHighlightColor: 'transparent'
+                }}
+              >
+                <div className="need-checkbox">
+                  {checkedItems[need.itemId] ? '✅' : '⭕'}
+                </div>
+                <div className="need-icon">{need.icon}</div>
+                <div className="need-info">
+                  <span className="need-name">{need.itemName}</span>
+                  <span className="need-count">{need.needToBring}{need.unit}</span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
-      
+
       <div className="preparation-tips">
         <h4>🌟 準備のコツ</h4>
         <ul>

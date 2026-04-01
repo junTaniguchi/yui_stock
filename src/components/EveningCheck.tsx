@@ -95,6 +95,48 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
     }
   };
 
+  const renderItemCard = (item: typeof dailyItems[0]) => (
+    <div key={item.id} className="item-card">
+      <div className="item-info">
+        <span className="item-icon">{item.icon}</span>
+        <div>
+          <h3>{item.name}</h3>
+          <p>今日使った枚数</p>
+        </div>
+      </div>
+
+      <div className="counter">
+        <button
+          type="button"
+          onClick={() => handleCountChange(item.id, (usedCounts[item.id] || 0) - 1)}
+          className="counter-btn minus"
+          disabled={isSubmitting}
+        >
+          -
+        </button>
+
+        <input
+          type="number"
+          min="0"
+          max={item.takesHomeDaily ? 1 : undefined}
+          value={usedCounts[item.id] || 0}
+          onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
+          className="counter-input"
+          disabled={isSubmitting}
+        />
+
+        <button
+          type="button"
+          onClick={() => handleCountChange(item.id, (usedCounts[item.id] || 0) + 1)}
+          className="counter-btn plus"
+          disabled={isSubmitting || (item.takesHomeDaily && (usedCounts[item.id] || 0) >= 1)}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="form-container">
       <div className="form-header">
@@ -106,48 +148,18 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
       </div>
 
       <form onSubmit={handleSubmit} className="stock-form">
-        <div className="items-grid">
-          {dailyItems.map(item => (
-            <div key={item.id} className="item-card">
-              <div className="item-info">
-                <span className="item-icon">{item.icon}</span>
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>今日使った枚数</p>
-                </div>
-              </div>
+        <div className="items-section">
+          <h3 style={{ marginBottom: '15px' }}>🎒 毎日持っていくものなど</h3>
+          <div className="items-grid">
+            {dailyItems.filter(item => item.group === 'daily_check').map(renderItemCard)}
+          </div>
+        </div>
 
-              <div className="counter">
-                <button
-                  type="button"
-                  onClick={() => handleCountChange(item.id, (usedCounts[item.id] || 0) - 1)}
-                  className="counter-btn minus"
-                  disabled={isSubmitting}
-                >
-                  -
-                </button>
-
-                <input
-                  type="number"
-                  min="0"
-                  max={item.takesHomeDaily ? 1 : undefined}
-                  value={usedCounts[item.id] || 0}
-                  onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
-                  className="counter-input"
-                  disabled={isSubmitting}
-                />
-
-                <button
-                  type="button"
-                  onClick={() => handleCountChange(item.id, (usedCounts[item.id] || 0) + 1)}
-                  className="counter-btn plus"
-                  disabled={isSubmitting || (item.takesHomeDaily && (usedCounts[item.id] || 0) >= 1)}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="items-section" style={{ marginTop: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>👕 ロッカー保管</h3>
+          <div className="items-grid">
+            {dailyItems.filter(item => item.group === 'stock').map(renderItemCard)}
+          </div>
         </div>
 
         {weeklyItems.length > 0 && (

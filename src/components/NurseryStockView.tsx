@@ -18,15 +18,15 @@ const NurseryStockView: React.FC<NurseryStockViewProps> = ({ stocks }) => {
 
   return (
     <div className="nursery-stock-view">
-      <h3>🏫 保育園にある在庫</h3>
+      <h3>🏫 幼稚園にある在庫</h3>
       <div className="stock-list">
         {stocks.map((stock) => {
           const hasRequirement = stock.requiredStock > 0;
           const stockRatio = hasRequirement ? stock.currentStock / stock.requiredStock : 1;
-          const statusClass = 
+          const statusClass =
             stockRatio >= 1 ? 'sufficient' :
-            stockRatio >= 0.5 ? 'warning' : 'insufficient';
-          
+              stockRatio >= 0.5 ? 'warning' : 'insufficient';
+
           return (
             <div key={stock.itemId} className={`stock-item ${statusClass}`}>
               <div className="stock-icon">{stock.icon}</div>
@@ -41,7 +41,7 @@ const NurseryStockView: React.FC<NurseryStockViewProps> = ({ stocks }) => {
                   )}
                 </div>
                 <div className="stock-progress-bar">
-                  <div 
+                  <div
                     className="stock-progress-fill"
                     style={{ width: `${Math.min(100, stockRatio * 100)}%` }}
                   />

@@ -19,22 +19,22 @@ const Login: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <h1>🌸 ゆいちゃんの</h1>
-          <h2>保育園準備アプリ</h2>
+          <h2>幼稚園準備アプリ</h2>
           <p>毎日の持ち物管理をお手伝い 🎒</p>
         </div>
-        
+
         <div className="login-illustration">
           <div className="illustration">👶 🏫 👗 🧸</div>
         </div>
 
-        <button 
+        <button
           onClick={handleGoogleSignIn}
           className="google-login-btn"
         >
           <span className="google-icon">🔐</span>
           Googleでログイン
         </button>
-        
+
         <p className="login-footer">
           安全にデータを保護します 💕
         </p>

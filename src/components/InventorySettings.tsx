@@ -81,7 +81,7 @@ const InventorySettings: React.FC<InventorySettingsProps> = ({ onBack, onSaved }
           <div>
             <h4>{item.name}</h4>
             <p className="inventory-settings-note">
-              {item.group ? '半袖と長袖の合計で調整できます' : '保育園に置いておきたい枚数'}
+              {item.group ? '半袖と長袖の合計で調整できます' : '幼稚園に置いておきたい枚数'}
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ const InventorySettings: React.FC<InventorySettingsProps> = ({ onBack, onSaved }
           ← 戻る
         </button>
         <h2>⚙️ 在庫の必要枚数</h2>
-        <p>保育園に置いておきたい枚数を設定できます</p>
+        <p>幼稚園に置いておきたい枚数を設定できます</p>
       </div>
 
       {loading ? (
