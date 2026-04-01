@@ -1,130 +1,31 @@
 import { ClothingItem } from '../types';
 
 export const clothingItems: ClothingItem[] = [
-  {
-    id: 'underwear',
-    name: '肌着',
-    type: 'underwear',
-    required: 3,
-    schedule: 'daily',
-    icon: '👕',
-    unit: '枚',
-  },
-  {
-    id: 'short_sleeve',
-    name: '上着（半袖）',
-    type: 'short_sleeve',
-    required: 1.5, // 半袖と長袖合わせて3枚
-    schedule: 'daily',
-    icon: '👚',
-    unit: '枚',
-    group: 'tops',
-    groupRequired: 3,
-  },
-  {
-    id: 'long_sleeve',
-    name: '上着（長袖）',
-    type: 'long_sleeve',
-    required: 1.5, // 半袖と長袖合わせて3枚
-    schedule: 'daily',
-    icon: '👔',
-    unit: '枚',
-    group: 'tops',
-    groupRequired: 3,
-  },
-  {
-    id: 'pants',
-    name: 'ズボン',
-    type: 'pants',
-    required: 3,
-    schedule: 'daily',
-    icon: '👖',
-    unit: '枚',
-  },
-  {
-    id: 'towel',
-    name: 'タオル',
-    type: 'towel',
-    required: 1,
-    schedule: 'daily',
-    icon: '🛏️',
-    unit: '枚',
-    takesHomeDaily: true,
-  },
-  {
-    id: 'contact_book',
-    name: '連絡帳',
-    type: 'contact_book',
-    required: 1,
-    schedule: 'daily',
-    icon: '📝',
-    unit: '個',
-    takesHomeDaily: true,
-  },
-  {
-    id: 'straw_mug',
-    name: 'ストローマグ',
-    type: 'straw_mug',
-    required: 1,
-    schedule: 'daily',
-    icon: '🥤',
-    unit: '個',
-    takesHomeDaily: true,
-  },
-  {
-    id: 'plastic_bag',
-    name: 'ビニール袋',
-    type: 'plastic_bag',
-    required: 1,
-    schedule: 'daily',
-    icon: '🛍️',
-    unit: '枚',
-    takesHomeDaily: true,
-  },
-  {
-    id: 'swimsuit',
-    name: '水着',
-    type: 'swimsuit',
-    required: 1,
-    schedule: 'weekly_monday',
-    icon: '👙',
-    unit: '枚',
-  },
-  {
-    id: 'jumper',
-    name: 'ジャンパー',
-    type: 'jumper',
-    required: 1,
-    schedule: 'weekly_monday',
-    icon: '🧥',
-    unit: '着',
-  },
-  {
-    id: 'bed_cover',
-    name: '敷布団カバー',
-    type: 'bed_cover',
-    required: 1,
-    schedule: 'weekly_friday',
-    icon: '🛌',
-    unit: '枚',
-  },
-  {
-    id: 'pillow_towel',
-    name: '枕用タオル',
-    type: 'pillow_towel',
-    required: 1,
-    schedule: 'weekly_friday',
-    icon: '🧺',
-    unit: '枚',
-  },
+  // 🎒 毎日持っていくもの
+  { id: 'backpack', name: '通園カバン', type: 'backpack', required: 1, schedule: 'daily', icon: '🎒', unit: '個', takesHomeDaily: true },
+  { id: 'hat', name: '帽子', type: 'hat', required: 1, schedule: 'daily', icon: '🧢', unit: '個', takesHomeDaily: true },
+  { id: 'cup', name: 'コップ', type: 'cup', required: 1, schedule: 'daily', icon: '🥛', unit: '個', takesHomeDaily: true },
+  { id: 'water_bottle', name: '水筒', type: 'water_bottle', required: 1, schedule: 'daily', icon: '🚰', unit: '個', takesHomeDaily: true },
+  { id: 'loop_towel', name: 'ループタオル', type: 'loop_towel', required: 1, schedule: 'daily', icon: '🧻', unit: '枚', takesHomeDaily: true },
+  { id: 'ic_tag', name: 'ICタグ', type: 'ic_tag', required: 1, schedule: 'daily', icon: '🏷️', unit: '個', takesHomeDaily: true },
+
+  // 🍱 お弁当の日
+  { id: 'bento', name: 'お弁当', type: 'bento', required: 1, schedule: 'daily', icon: '🍱', unit: '個', takesHomeDaily: true },
+  { id: 'utensils', name: '食具', type: 'utensils', required: 1, schedule: 'daily', icon: '🍴', unit: 'セット', takesHomeDaily: true },
+
+  // 👕 ロッカー保管（着替え一式・袋・靴）
+  { id: 'long_sleeve', name: '長袖', type: 'long_sleeve', required: 3, schedule: 'daily', icon: '👔', unit: '枚' },
+  { id: 'short_sleeve', name: '半袖', type: 'short_sleeve', required: 3, schedule: 'daily', icon: '👕', unit: '枚' },
+  { id: 'underwear', name: '肌着', type: 'underwear', required: 3, schedule: 'daily', icon: '🎽', unit: '枚' },
+  { id: 'pants', name: 'ズボン', type: 'pants', required: 3, schedule: 'daily', icon: '👖', unit: '枚' },
+  { id: 'plastic_bag', name: '汚れ物袋', type: 'plastic_bag', required: 3, schedule: 'daily', icon: '🛍️', unit: '枚' },
+  { id: 'shoes', name: '上履き', type: 'shoes', required: 1, schedule: 'daily', icon: '👟', unit: '足' },
+
+  // 👨‍👩‍👧 親の持ち物
+  { id: 'slippers', name: 'スリッパ', type: 'slippers', required: 1, schedule: 'daily', icon: '🩴', unit: '足', takesHomeDaily: true },
+  { id: 'security_card', name: '防犯カード', type: 'security_card', required: 1, schedule: 'daily', icon: '💳', unit: '枚', takesHomeDaily: true },
+  { id: 'ic_card', name: 'ICカード', type: 'ic_card', required: 1, schedule: 'daily', icon: '💳', unit: '枚', takesHomeDaily: true },
 ];
 
-// 毎日必要なアイテム
-export const dailyItems = clothingItems.filter(item => 
-  ['underwear', 'short_sleeve', 'long_sleeve', 'pants', 'towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id)
-);
-
-// 週次アイテム
-export const weeklyItems = clothingItems.filter(item => 
-  ['swimsuit', 'jumper', 'bed_cover', 'pillow_towel'].includes(item.id)
-);
+export const dailyItems = clothingItems.filter(item => item.schedule === 'daily');
+export const weeklyItems = clothingItems.filter(item => item.schedule !== 'daily');

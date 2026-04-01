@@ -24,7 +24,7 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
   // 日本時闳での今日の日付を取得
   const getJapanDate = () => {
     const now = new Date();
-    const japanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+    const japanTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
     return japanTime.toISOString().split('T')[0];
   };
   // const today = getJapanDate(); // 使用されていないためコメントアウト
@@ -37,14 +37,14 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
   }, [existingData]);
 
   const handleCountChange = (itemId: string, count: number) => {
-    // 上着、肌着、ズボン以外は0か1のみ
-    const restrictedItems = ['towel', 'contact_book', 'straw_mug', 'plastic_bag'];
+    // 毎日持ち帰るアイテムは0か1のみ
+    const isRestricted = dailyItems.find(i => i.id === itemId)?.takesHomeDaily;
     let newCount = Math.max(0, count);
-    
-    if (restrictedItems.includes(itemId)) {
+
+    if (isRestricted) {
       newCount = Math.min(1, newCount);
     }
-    
+
     setUsedCounts(prev => ({
       ...prev,
       [itemId]: newCount,
@@ -116,7 +116,7 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
                   <p>今日使った枚数</p>
                 </div>
               </div>
-              
+
               <div className="counter">
                 <button
                   type="button"
@@ -126,22 +126,22 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
                 >
                   -
                 </button>
-                
+
                 <input
                   type="number"
                   min="0"
-                  max={['towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id) ? 1 : undefined}
+                  max={item.takesHomeDaily ? 1 : undefined}
                   value={usedCounts[item.id] || 0}
                   onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
                   className="counter-input"
                   disabled={isSubmitting}
                 />
-                
+
                 <button
                   type="button"
                   onClick={() => handleCountChange(item.id, (usedCounts[item.id] || 0) + 1)}
                   className="counter-btn plus"
-                  disabled={isSubmitting || (['towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id) && (usedCounts[item.id] || 0) >= 1)}
+                  disabled={isSubmitting || (item.takesHomeDaily && (usedCounts[item.id] || 0) >= 1)}
                 >
                   +
                 </button>
@@ -174,16 +174,16 @@ const EveningCheck: React.FC<EveningCheckProps> = ({ onComplete, onBack, existin
         )}
 
         <div className="form-note">
-          <p>💡 ヒント: 連絡帳は必ず1枚、タオルも通常1枚使います</p>
+          <p>💡 ヒント: 通園カバンや水筒などは通常1つ持ち帰ります</p>
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="submit-btn evening-submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 
-            (existingData ? '更新中...' : '保存中...') : 
+          {isSubmitting ?
+            (existingData ? '更新中...' : '保存中...') :
             (existingData ? '使用記録を更新 📝' : '使用記録を保存 📝')
           }
         </button>

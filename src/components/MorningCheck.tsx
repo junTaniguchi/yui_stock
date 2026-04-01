@@ -26,7 +26,7 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
   // 日本時間での今日の日付を取得
   const getJapanDate = () => {
     const now = new Date();
-    const japanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Tokyo"}));
+    const japanTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
     return japanTime.toISOString().split('T')[0];
   };
   // const today = getJapanDate(); // 使用されていないためコメントアウト
@@ -48,14 +48,14 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
   }, [existingData]);
 
   const handleCountChange = (itemId: string, count: number) => {
-    // 上着、肌着、ズボン以外は0か1のみ
-    const restrictedItems = ['towel', 'contact_book', 'straw_mug', 'plastic_bag'];
+    // 毎日持ち帰るアイテムは0か1のみ
+    const isRestricted = dailyItems.find(i => i.id === itemId)?.takesHomeDaily;
     let newCount = Math.max(0, count);
-    
-    if (restrictedItems.includes(itemId)) {
+
+    if (isRestricted) {
       newCount = Math.min(1, newCount);
     }
-    
+
     setCounts(prev => ({
       ...prev,
       [itemId]: newCount,
@@ -127,51 +127,51 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
               : roundedShortage.toFixed(1);
 
             return (
-            <div key={item.id} className="item-card">
-              <div className="item-info">
-                <span className="item-icon">{item.icon}</span>
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>必要数: {formattedRequiredCounts[item.id]}{item.unit}</p>
+              <div key={item.id} className="item-card">
+                <div className="item-info">
+                  <span className="item-icon">{item.icon}</span>
+                  <div>
+                    <h3>{item.name}</h3>
+                    <p>必要数: {formattedRequiredCounts[item.id]}{item.unit}</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="counter">
-                <button
-                  type="button"
-                  onClick={() => handleCountChange(item.id, (counts[item.id] || 0) - 1)}
-                  className="counter-btn minus"
-                  disabled={isSubmitting}
-                >
-                  -
-                </button>
-                
-                <input
-                  type="number"
-                  min="0"
-                  max={['towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id) ? 1 : undefined}
-                  value={counts[item.id] || 0}
-                  onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
-                  className="counter-input"
-                  disabled={isSubmitting}
-                />
-                
-                <button
-                  type="button"
-                  onClick={() => handleCountChange(item.id, (counts[item.id] || 0) + 1)}
-                  className="counter-btn plus"
-                  disabled={isSubmitting || (['towel', 'contact_book', 'straw_mug', 'plastic_bag'].includes(item.id) && (counts[item.id] || 0) >= 1)}
-                >
-                  +
-                </button>
-              </div>
-              
-              {counts[item.id] !== undefined && (counts[item.id] || 0) < requiredValue && (
-                <div className="shortage-warning">
-                  ⚠️ {shortageDisplay}{item.unit}不足
+
+                <div className="counter">
+                  <button
+                    type="button"
+                    onClick={() => handleCountChange(item.id, (counts[item.id] || 0) - 1)}
+                    className="counter-btn minus"
+                    disabled={isSubmitting}
+                  >
+                    -
+                  </button>
+
+                  <input
+                    type="number"
+                    min="0"
+                    max={item.takesHomeDaily ? 1 : undefined}
+                    value={counts[item.id] || 0}
+                    onChange={(e) => handleCountChange(item.id, parseInt(e.target.value) || 0)}
+                    className="counter-input"
+                    disabled={isSubmitting}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleCountChange(item.id, (counts[item.id] || 0) + 1)}
+                    className="counter-btn plus"
+                    disabled={isSubmitting || (item.takesHomeDaily && (counts[item.id] || 0) >= 1)}
+                  >
+                    +
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {counts[item.id] !== undefined && (counts[item.id] || 0) < requiredValue && (
+                  <div className="shortage-warning">
+                    ⚠️ {shortageDisplay}{item.unit}不足
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -199,13 +199,13 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
           </div>
         )}
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="submit-btn"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 
-            (existingData ? '更新中...' : '保存中...') : 
+          {isSubmitting ?
+            (existingData ? '更新中...' : '保存中...') :
             (existingData ? '在庫確認を更新 ✅' : '在庫確認を保存 ✅')
           }
         </button>
