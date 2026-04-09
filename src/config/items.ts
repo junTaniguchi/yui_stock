@@ -6,6 +6,7 @@ export const clothingItems: ClothingItem[] = [
   { id: 'cup', name: 'コップ', type: 'cup', required: 1, schedule: 'daily', icon: '🥛', unit: '個', takesHomeDaily: true, group: 'daily_check' },
   { id: 'water_bottle', name: '水筒', type: 'water_bottle', required: 1, schedule: 'daily', icon: '🚰', unit: '個', takesHomeDaily: true, group: 'daily_check' },
   { id: 'loop_towel', name: 'ループタオル', type: 'loop_towel', required: 1, schedule: 'daily', icon: '🧣', unit: '枚', takesHomeDaily: true, group: 'daily_check' },
+  { id: 'mouth_towel', name: '口拭きタオル', type: 'mouth_towel', required: 1, schedule: 'daily', icon: '🧺', unit: 'セット', takesHomeDaily: true, group: 'daily_check' },
 
   // 🍱 お弁当の日
   { id: 'bento', name: 'お弁当', type: 'bento', required: 1, schedule: 'daily', icon: '🍱', unit: '個', takesHomeDaily: true, group: 'daily_check' },
@@ -17,7 +18,12 @@ export const clothingItems: ClothingItem[] = [
   { id: 'underwear', name: '肌着', type: 'underwear', required: 3, schedule: 'daily', icon: '🎽', unit: '枚', group: 'stock' },
   { id: 'pants', name: 'ズボン', type: 'pants', required: 3, schedule: 'daily', icon: '👖', unit: '枚', group: 'stock' },
   { id: 'plastic_bag', name: '汚れ物袋', type: 'plastic_bag', required: 3, schedule: 'daily', icon: '🛍️', unit: '枚', group: 'stock' },
+  { id: 'socks', name: '靴下', type: 'socks', required: 1, schedule: 'daily', icon: '🧦', unit: '足', group: 'stock' },
+
+  // 週末持ち帰り・週明け持参
   { id: 'shoes', name: '上履き', type: 'shoes', required: 1, schedule: 'daily', icon: '👟', unit: '足', group: 'stock' },
+  { id: 'cot_cover', name: 'コットカバー', type: 'cot_cover', required: 1, schedule: 'daily', icon: '🛌', unit: '枚', group: 'stock' },
+  { id: 'nap_towel', name: 'お昼寝用タオル', type: 'nap_towel', required: 1, schedule: 'daily', icon: '🛌', unit: '枚', group: 'stock' },
 
   // 👨‍👩‍👧 親の持ち物
   { id: 'slippers', name: 'スリッパ', type: 'slippers', required: 1, schedule: 'daily', icon: '🩴', unit: '足', takesHomeDaily: true, group: 'parent_check' },

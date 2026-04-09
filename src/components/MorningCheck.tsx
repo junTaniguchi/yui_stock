@@ -188,28 +188,6 @@ const MorningCheck: React.FC<MorningCheckProps> = ({ onComplete, onBack, existin
           </div>
         </div>
 
-        {weeklyItems.length > 0 && (
-          <div className="weekly-section">
-            <h3>📅 今日持参した週単位アイテム</h3>
-            <div className="weekly-checklist">
-              {weeklyItems.map(item => (
-                <div key={item.id} className="weekly-check-item">
-                  <label className="weekly-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={weeklyItemsBrought[item.id] || false}
-                      onChange={(e) => handleWeeklyItemChange(item.id, e.target.checked)}
-                      disabled={isSubmitting}
-                    />
-                    <span className="checkmark"></span>
-                    <span className="item-icon">{item.icon}</span>
-                    <span className="item-name">{item.name}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <button
           type="submit"
