@@ -1,7 +1,7 @@
 export interface ClothingItem {
   id: string;
   name: string;
-  type: 'hat' | 'cup' | 'water_bottle' | 'loop_towel' | 'mouth_towel' | 'bento' | 'utensils' | 'long_sleeve' | 'short_sleeve' | 'underwear' | 'pants' | 'plastic_bag' | 'shoes' | 'slippers' | 'security_card' | 'ic_card' | 'socks' | 'cot_cover' | 'nap_towel';
+  type: 'hat' | 'cup' | 'water_bottle' | 'loop_towel' | 'mouth_towel' | 'bento' | 'utensils' | 'long_sleeve' | 'short_sleeve' | 'underwear' | 'pants' | 'plastic_bag' | 'shoes' | 'slippers' | 'security_card' | 'ic_card' | 'socks' | 'cot_cover' | 'nap_towel' | 'face_towel';
   required: number; // 必要な在庫数
   schedule?: 'daily' | 'weekly_monday' | 'weekly_friday'; // スケジュールタイプ
   icon: string; // アイコン（絵文字）

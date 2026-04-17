@@ -19,6 +19,7 @@ export const clothingItems: ClothingItem[] = [
   { id: 'pants', name: 'ズボン', type: 'pants', required: 3, schedule: 'daily', icon: '👖', unit: '枚', group: 'stock' },
   { id: 'plastic_bag', name: '汚れ物袋', type: 'plastic_bag', required: 3, schedule: 'daily', icon: '🛍️', unit: '枚', group: 'stock' },
   { id: 'socks', name: '靴下', type: 'socks', required: 1, schedule: 'daily', icon: '🧦', unit: '足', group: 'stock' },
+  { id: 'face_towel', name: 'フェイスタオル', type: 'face_towel', required: 1, schedule: 'daily', icon: '🧣', unit: '枚', group: 'stock' },
 
   // 週末持ち帰り・週明け持参
   { id: 'shoes', name: '上履き', type: 'shoes', required: 1, schedule: 'daily', icon: '👟', unit: '足', group: 'stock' },
